@@ -5,7 +5,7 @@
 
 ## Next.js
 ```shell
-npm install -D vitest @vitejs/plugin-react jsdom @testing-library/react vite-tsconfig-paths
+npm install -D vitest @vitejs/plugin-react jsdom @testing-library/react vite-tsconfig-paths @vitest/coverage-v8
 ```
 
 - vitest.config.ts:

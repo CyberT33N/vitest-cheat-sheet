@@ -57,7 +57,36 @@ export default defineConfig({
 ```
 - environment must be node
 
+<br><br>
+<br><br>
 
+### vitest.unit.config.ts
+- package.json add to scripts `"test:unit": "vitest --config vitest.unit.config.ts"`
+
+```
+import { defineConfig } from 'vitest/config'
+import vitestConfig from './vitest.config'
+
+const config = {
+    ...vitestConfig,
+    test: vitestConfig.test || {}
+}
+
+config.test.include = [
+    'test/unit/**/*.test.ts'
+]
+
+config.test.watch = false
+
+export default defineConfig(config)
+```
+
+
+
+
+
+<br><br>
+<br><br>
 <br><br>
 <br><br>
 
@@ -70,6 +99,12 @@ export default bootstrap
 ```
   - export function which will be executed once before all tests
 
+
+<br><br>
+<br><br>
+
+## watch
+- disable watch
 
 
 

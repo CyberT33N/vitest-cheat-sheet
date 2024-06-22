@@ -56,3 +56,16 @@ export default defineConfig({
 })
 ```
 - environment must be node
+
+
+<br><br>
+<br><br>
+
+## globalSetup
+- test/setup-tests.ts:
+```typescript
+// ==== BOOTSTRAP ====
+import { bootstrap } from '@/src/bootstrap'
+export default bootstrap
+```
+  - export function which will be executed once before all tests

@@ -135,6 +135,28 @@ ___________________________________
 
 ## Test Filtering
 - https://vitest.dev/guide/filtering.html
+  
+<br><br>
+
+### .only
+- Not sure how it works out of the box but here is a workaround:
+
+  - test-only.sh 
+  ```shell
+  rep --exclude-dir=node_modules -rl . -e 'test.only\|it.only\|describe.only' --null | tr '\n' ' ' | xargs -0 npx vitest | grep . || npx vitest --coverage
+  ```
+
+
+
+
+
+
+
+
+
+
+
+
 
 <br><br>
 <br><br>

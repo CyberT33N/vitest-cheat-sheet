@@ -135,3 +135,9 @@ ___________________________________
 
 ## Test Filtering
 - https://vitest.dev/guide/filtering.html
+
+<br><br>
+<br><br>
+
+## Coverage
+- https://vitest.dev/guide/coverage.html#coverage-setup

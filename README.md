@@ -138,6 +138,11 @@ Options:
 ## Disable watch
 - `--watch=false`
 
+<br><br>
+
+## timeout
+- `--testTimeout=5000`
+
 
 
 

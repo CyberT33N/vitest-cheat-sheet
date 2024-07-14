@@ -1,4 +1,10 @@
-# vitest-cheat-sheet
+# Vitest cheat sheet
+
+
+
+
+
+
 
 
 # Install
@@ -304,3 +310,81 @@ ___________________________________
 
 ## Coverage
 - https://vitest.dev/guide/coverage.html#coverage-setup
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<br><br>
+<br><br>
+___________________________________
+___________________________________
+<br><br>
+<br><br>
+
+# API
+
+<br><br>
+
+## expect
+- https://vitest.dev/api/expect.html
+
+
+<br><br>
+<br><br>
+
+### toThrowError()
+- https://vitest.dev/api/expect.html#tothrowerror
+
+<br><br>
+
+#### Sync
+```javascript
+import { expect, test } from 'vitest'
+
+function getFruitStock(type: string) {
+  if (type === 'pineapples') {
+    throw new Error('Pineapples are not in stock')
+  }
+
+  // Do some other stuff
+}
+
+test('throws on pineapples', () => {
+  // Test that the error message says "stock" somewhere: these are equivalent
+  expect(() => getFruitStock('pineapples')).toThrowError(/stock/)
+  expect(() => getFruitStock('pineapples')).toThrowError('stock')
+
+  // Test the exact error message
+  expect(() => getFruitStock('pineapples')).toThrowError(
+    /^Pineapples are not in stock$/,
+  )
+})
+```
+
+
+#### Async
+```javascript
+function getAsyncFruitStock() {
+  return Promise.reject(new Error('empty'))
+}
+
+test('throws on pineapples', async () => {
+  await expect(() => getAsyncFruitStock()).rejects.toThrowError('empty')
+})
+```

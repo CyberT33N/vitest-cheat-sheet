@@ -344,6 +344,34 @@ ___________________________________
 ## expect
 - https://vitest.dev/api/expect.html
 
+<br><br>
+<br><br>
+
+### objectContaining
+- https://vitest.dev/api/expect.html#expect-objectcontaining
+```javascript
+import { expect, test } from 'vitest'
+
+# Example #1
+expect(chatCompletion).toEqual(expect.objectContaining(expectedResponse))
+
+# Example #2
+test('basket has empire apples', () => {
+  const basket = {
+    varieties: [
+      {
+        name: 'Empire',
+        count: 1,
+      }
+    ],
+  }
+  expect(basket).toEqual({
+    varieties: [
+      expect.objectContaining({ name: 'Empire' }),
+    ]
+  })
+})
+```
 
 <br><br>
 <br><br>

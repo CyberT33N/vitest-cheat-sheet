@@ -232,8 +232,34 @@ export default defineConfig(config)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 <br><br>
 <br><br>
+<br><br>
+<br><br>
+
+## setupFiles
+- https://vitest.dev/config/#setupfiles
+- Path to setup files. They will be run before each test file.
+
+
+
+
+
+
+
+
 <br><br>
 <br><br>
 

@@ -238,6 +238,7 @@ export default defineConfig(config)
 <br><br>
 
 ## globalSetup
+- https://vitest.dev/config/#globalsetup
 - test/setup-tests.ts:
 ```typescript
 // ==== BOOTSTRAP ====

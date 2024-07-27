@@ -253,6 +253,38 @@ export default defineConfig(config)
 - https://vitest.dev/config/#setupfiles
 - Path to setup files. They will be run before each test file.
 
+vitest.config.ts
+```
+export default defineConfig({
+    // esbuild: { target: 'ES2022' },
+    plugins: [tsconfigPaths(), react()],
+    test: {
+        environment: 'node',
+        setupFiles: 'test/setup-tests-beforeEach.ts',
+        globalSetup: 'test/setup-tests.ts',
+        coverage: {
+            // Include only specific directories for coverage
+            include: ['app/api/', 'src/', 'utils/'],
+            // Optional: Exclude certain files or directories
+            //exclude: ['src/legacy/', 'utils/helpers.ts'],
+            // Optional: Specify coverage reporters (e.g., text, json, html)
+            reporter: ['text', 'json', 'html']
+        }
+    }
+})
+```
+
+test/setup-tests-beforeEach.ts:
+```
+// ==== VITEST ====
+import { beforeEach} from 'vitest'
+
+const NLE = process.env.npm_lifecycle_event
+
+beforeEach(() => {
+    process.env.npm_lifecycle_event = NLE
+})
+```
 
 
 

@@ -306,9 +306,8 @@ export async function setup() {
 export async function teardown() {
     server.close()
 }
-
 ```
-  - export function which will be executed once before all tests
+  - A global setup file can either export named functions setup and teardown or a default function that returns a teardown function ([example](https://github.com/vitest-dev/vitest/blob/main/test/global-setup/vitest.config.ts)).
 
 
 

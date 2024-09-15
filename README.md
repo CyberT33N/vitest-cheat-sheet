@@ -243,17 +243,23 @@ export default mergeConfig(vitestConfig, defineConfig({
 - package.json add to scripts `"test:integration": "vitest run --testTimeout=300000 --coverage --disable-console-intercept --watch=false --config vitest.integration.config.ts"`
 
 ```typescriot
+
 // ==== VITEST ====
 import { defineConfig, mergeConfig } from 'vitest/config'
 import vitestConfig from './vitest.config'
 
-export default mergeConfig(vitestConfig, defineConfig({
+const cfg = mergeConfig(vitestConfig, defineConfig({
     test: {
         include: ['test/integration/**/*.test.ts'],
         globalSetup: 'test/integration/pretestAll.ts',
         watch: false
     }
 }))
+
+
+cfg.test.coverage.include = ['src/middleware.ts']
+
+export default cfg
 ```
 
 

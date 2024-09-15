@@ -206,67 +206,53 @@ export default defineConfig({
 
 
 
+
+
+
+
 <br><br>
 <br><br>
 <br><br>
 <br><br>
 
-## Merge configs
-- When using a separate vitest.config.js, you can also extend Vite's options from another config file if needed:
-- https://vitest.dev/config/file.html#managing-vitest-config-file
-```typescript
+## vitest.unit.config.ts
+- package.json add to scripts `"test:unit": "vitest run --testTimeout=300000 --coverage --disable-console-intercept --watch=false --config vitest.unit.config.ts"`
+
+```typescriot
+// ==== VITEST ====
 import { defineConfig, mergeConfig } from 'vitest/config'
-import viteConfig from './vite.config'
+import vitestConfig from './vitest.config'
 
-export default mergeConfig(viteConfig, defineConfig({
-  test: {
-    exclude: ['packages/template/*'],
-  },
+export default mergeConfig(vitestConfig, defineConfig({
+    test: {
+        include: ['test/unit/**/*.test.ts'],
+        setupFiles: 'test/unit/pretestEach.ts',
+        watch: false,
+        coverage: {
+            exclude: ['**/route.ts']
+        }
+    }
 }))
 ```
 
-- If your Vite config is defined as a function, you can define the config like this:
-```typescript
+<br><br>
+<br><br>
+
+## vitest.integration.config.ts
+- package.json add to scripts `"test:integration": "vitest run --testTimeout=300000 --coverage --disable-console-intercept --watch=false --config vitest.integration.config.ts"`
+
+```typescriot
+// ==== VITEST ====
 import { defineConfig, mergeConfig } from 'vitest/config'
-import viteConfig from './vite.config'
-
-export default defineConfig(configEnv => mergeConfig(
-  viteConfig(configEnv),
-  defineConfig({
-    test: {
-      exclude: ['packages/template/*'],
-    },
-  })
-))
-```
-
-
-
-
-<br><br>
-<br><br>
-<br><br>
-<br><br>
-
-### vitest.unit.config.ts
-- package.json add to scripts `"test:unit": "vitest --config vitest.unit.config.ts"`
-
-```
-import { defineConfig } from 'vitest/config'
 import vitestConfig from './vitest.config'
 
-const config = {
-    ...vitestConfig,
-    test: vitestConfig.test || {}
-}
-
-config.test.include = [
-    'test/unit/**/*.test.ts'
-]
-
-config.test.watch = false
-
-export default defineConfig(config)
+export default mergeConfig(vitestConfig, defineConfig({
+    test: {
+        include: ['test/integration/**/*.test.ts'],
+        globalSetup: 'test/integration/pretestAll.ts',
+        watch: false
+    }
+}))
 ```
 
 

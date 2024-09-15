@@ -336,8 +336,48 @@ ___________________________________
 
 # Tests
 
+
+
+
+<br><br>
 <br><br>
 
+## Nested Tests
+- If you want to run e.g. pretest.ts before main.test.ts then do:
+
+pretest.ts
+```typescript
+// ==== VITEST ====
+import { beforeAll } from 'vitest'
+
+beforeAll(() => {
+    // ..
+})
+```
+- Do not use describe just include e.g. beforeAll
+
+main.test.ts
+```typescript
+await import('./pretest')
+
+describe('[INTEGRATION] - src/errors/BaseError', () => {
+    it('should return 500 with BaseError details - error passed', async() => {
+        // ..
+    })
+})
+```
+
+
+
+
+
+
+
+
+<br><br>
+<br><br>
+<br><br>
+<br><br>
 
 ## Test Filtering
 - https://vitest.dev/guide/filtering.html

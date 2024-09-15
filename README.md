@@ -357,6 +357,24 @@ beforeAll(() => {
 - Do not use describe just include e.g. beforeAll
 
 main.test.ts
+
+Alternative #1
+```typescript
+// ==== VITEST ====
+import { beforeAll } from 'vitest'
+
+describe('[INTEGRATION] - src/errors/BaseError', () => {
+    beforeAll(async() => {
+        await import('./pretest')
+    })
+
+    it('should return 500 with BaseError details - error passed', async() => {
+        // ..
+    })
+})
+```
+
+Alternative #2
 ```typescript
 await import('./pretest')
 

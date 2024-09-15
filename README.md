@@ -299,15 +299,30 @@ beforeEach(() => {
 - https://vitest.dev/config/#globalsetup
 - test/setup-tests.ts:
 ```typescript
-// ==== BOOTSTRAP ====
-import { bootstrap } from '@/src/bootstrap'
-export default bootstrap
+export async function setup() {
+    server.start()
+}
+
+export async function teardown() {
+    server.close()
+}
+
 ```
   - export function which will be executed once before all tests
 
 
+
+
+
+
+
+
+
 <br><br>
 <br><br>
+<br><br>
+<br><br>
+
 
 ## watch
 - disable watch

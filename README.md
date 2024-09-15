@@ -204,6 +204,47 @@ export default defineConfig({
 ```
 - environment must be node
 
+
+
+<br><br>
+<br><br>
+<br><br>
+<br><br>
+
+## Merge configs
+- When using a separate vitest.config.js, you can also extend Vite's options from another config file if needed:
+- https://vitest.dev/config/file.html#managing-vitest-config-file
+```typescript
+import { defineConfig, mergeConfig } from 'vitest/config'
+import viteConfig from './vite.config'
+
+export default mergeConfig(viteConfig, defineConfig({
+  test: {
+    exclude: ['packages/template/*'],
+  },
+}))
+```
+
+- If your Vite config is defined as a function, you can define the config like this:
+```typescript
+import { defineConfig, mergeConfig } from 'vitest/config'
+import viteConfig from './vite.config'
+
+export default defineConfig(configEnv => mergeConfig(
+  viteConfig(configEnv),
+  defineConfig({
+    test: {
+      exclude: ['packages/template/*'],
+    },
+  })
+))
+```
+
+
+
+
+<br><br>
+<br><br>
 <br><br>
 <br><br>
 
@@ -325,6 +366,25 @@ export async function teardown() {
 
 ## watch
 - disable watch
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

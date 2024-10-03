@@ -4,7 +4,8 @@
 
 
 
-
+<br><br>
+<br><br>
 
 
 # Install
@@ -524,6 +525,37 @@ ___________________________________
 # API
 
 <br><br>
+
+## Testing Types
+- https://vitest.dev/guide/testing-types
+- Vitest allows you to write tests for your types, using expectTypeOf or assertType syntaxes. By default all tests inside *.test-d.ts files are considered type tests, but you can change it with typecheck.include config option.
+- Under the hood Vitest calls tsc or vue-tsc, depending on your config, and parses results. Vitest will also print out type errors in your source code, if it finds any. You can disable it with typecheck.ignoreSourceErrors config option.Keep in mind that Vitest doesn't run these files, they are only statically analyzed by the compiler. Meaning, that if you use a dynamic name or test.each or test.for, the test name will not be evaluated - it will be displayed as is.
+
+- To enable typechecking, just add --typecheck flag to your Vitest command in package.json:
+```
+{
+  "scripts": {
+    "test": "vitest --typecheck"
+  }
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<br><br><br><br>
+<br><br><br><br>
 
 ## expectTypeOf
 - https://vitest.dev/api/expect-typeof

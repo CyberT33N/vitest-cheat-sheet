@@ -554,6 +554,31 @@ expectTypeOf(ModelManager.getInstance).returns.toEqualTypeOf(Promise.resolve(mod
 ```
 
 
+<br><br>
+
+# instance 
+- https://vitest.dev/api/expect-typeof#instance
+- This property gives access to matchers that can be performed on an instance of the provided class.
+```typescript
+import { expectTypeOf } from 'vitest'
+
+expectTypeOf(Date).instance.toHaveProperty('toISOString')
+```
+
+<br><br>
+
+# resolve 
+- This matcher extracts resolved value of a Promise, so you can perform other assertions on it.
+```typescript
+import { expectTypeOf } from 'vitest'
+
+async function asyncFunc() {
+  return 123
+}
+
+expectTypeOf(asyncFunc).returns.resolves.toBeNumber()
+expectTypeOf(Promise.resolve('string')).resolves.toBeString())
+```
 
 
 

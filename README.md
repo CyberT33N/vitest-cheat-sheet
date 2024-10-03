@@ -527,17 +527,53 @@ ___________________________________
 
 ## expectTypeOf
 - https://vitest.dev/api/expect-typeof
-
+  
+<details><summary>Click to expand..</summary>
 
 <br><br>
 
-### toEqualTypeOf 
+# toEqualTypeOf 
 ```typescript
 expectTypeOf({ a: 1 }).toEqualTypeOf<{ a: number }>()
 expectTypeOf({ a: 1 }).toEqualTypeOf({ a: 1 })
 expectTypeOf({ a: 1 }).toEqualTypeOf({ a: 2 })
 expectTypeOf({ a: 1, b: 1 }).not.toEqualTypeOf<{ a: number }>()
 ```
+
+
+<br><br>
+
+# returns 
+- You can use .returns to extract return value of a function type.
+```typescript
+import { expectTypeOf } from 'vitest'
+
+expectTypeOf(() => {}).returns.toBeVoid()
+expectTypeOf((a: number) => [a, a]).returns.toEqualTypeOf([1, 2])
+expectTypeOf(ModelManager.getInstance).returns.toEqualTypeOf(Promise.resolve(modelManager))
+```
+
+
+
+
+
+
+</details>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -552,10 +588,12 @@ expectTypeOf({ a: 1, b: 1 }).not.toEqualTypeOf<{ a: number }>()
 ## expect
 - https://vitest.dev/api/expect.html
 
+<details><summary>Click to expand..</summary>
+ 
 <br><br>
 <br><br>
 
-### objectContaining
+# objectContaining
 - https://vitest.dev/api/expect.html#expect-objectcontaining
 ```javascript
 import { expect, test } from 'vitest'
@@ -584,12 +622,12 @@ test('basket has empire apples', () => {
 <br><br>
 <br><br>
 
-### toThrowError()
+# toThrowError()
 - https://vitest.dev/api/expect.html#tothrowerror
 
 <br><br>
 
-#### Sync
+## Sync
 ```javascript
 import { expect, test } from 'vitest'
 
@@ -614,7 +652,7 @@ test('throws on pineapples', () => {
 ```
 
 
-#### Async
+## Async
 ```javascript
 function getAsyncFruitStock() {
   return Promise.reject(new Error('empty'))
@@ -624,3 +662,5 @@ test('throws on pineapples', async () => {
   await expect(() => getAsyncFruitStock()).rejects.toThrowError('empty')
 })
 ```
+
+</details>

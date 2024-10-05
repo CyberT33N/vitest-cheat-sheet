@@ -584,6 +584,38 @@ import.meta.env.NODE_ENV === undefined
 // doesn't change other envs
 import.meta.env.MODE === 'development'
 ```
+
+<br><br>
+
+# vi.unstubAllEnvs 
+- https://vitest.dev/api/vi.html#vi-unstuballenvs
+- Restores all import.meta.env and process.env values that were changed with vi.stubEnv. When it's called for the first time, Vitest remembers the original value and will store it, until unstubAllEnvs is called again.
+```typescript
+import { vi } from 'vitest'
+
+// `process.env.NODE_ENV` and `import.meta.env.NODE_ENV`
+// are "development" before calling "vi.stubEnv"
+
+vi.stubEnv('NODE_ENV', 'production')
+
+process.env.NODE_ENV === 'production'
+import.meta.env.NODE_ENV === 'production'
+
+vi.stubEnv('NODE_ENV', undefined)
+
+process.env.NODE_ENV === undefined
+import.meta.env.NODE_ENV === undefined
+
+// doesn't change other envs
+import.meta.env.MODE === 'development'
+```
+ 
+
+
+
+
+
+
  
 </details>
  

@@ -528,7 +528,52 @@ ___________________________________
 
 ## Testing Types
 - https://vitest.dev/guide/testing-types
-- Vitest allows you to write tests for your types, using expectTypeOf or assertType syntaxes. By default all tests inside *.test-d.ts files are considered type tests, but you can change it with typecheck.include config option.
+- Vitest allows you to write tests for your types, using expectTypeOf or assertType syntaxes. By default all tests inside *.test-d.ts files are considered type tests, but you can change it with typecheck.include config option. Here is an example to type check any .test.ts file instead of only *.test-d.ts
+```typescript
+import dotenv from 'dotenv'
+// Load .env 
+dotenv.config()
+// Load .env.test and override .env
+dotenv.config({ path: '.env.test', override: true })
+
+// ==== DEPENDENCIES ====
+import tsconfigPaths from 'vite-tsconfig-paths'
+
+// ==== VITEST ====
+import { defineConfig } from 'vitest/config'
+
+/**
+ * Represents the configuration for the Vitest test runner.
+ */
+export default defineConfig({
+    plugins: [tsconfigPaths()],
+    test: {
+        watch: false,
+        setupFiles: 'test/unit/pretestEach.ts',
+        globalSetup: 'test/integration/pretestAll.ts',
+        environment: 'node',
+        typecheck: {
+            include: ['**/*.{test,spec}.?(c|m)[jt]s?(x)'] // Hier den typecheck.include Wert einfügen
+        },
+        coverage: {
+            /**
+             * Specifies the directories to include for coverage.
+             */
+            include: ['src/'],
+            /**
+             * Specifies the files or directories to exclude from coverage.
+             */
+            //exclude: ['src/legacy/', 'utils/helpers.ts'],
+            /**
+             * Specifies the coverage reporters to use.
+             */
+            reporter: ['text', 'json', 'html']
+        }
+    }
+})
+
+```
+
 - Under the hood Vitest calls tsc or vue-tsc, depending on your config, and parses results. Vitest will also print out type errors in your source code, if it finds any. You can disable it with typecheck.ignoreSourceErrors config option.Keep in mind that Vitest doesn't run these files, they are only statically analyzed by the compiler. Meaning, that if you use a dynamic name or test.each or test.for, the test name will not be evaluated - it will be displayed as is.
 
 - To enable typechecking, just add --typecheck flag to your Vitest command in package.json:

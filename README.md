@@ -551,6 +551,60 @@ ___________________________________
 
 
 
+<br><br><br><br>
+<br><br><br><br>
+
+## VI Utility
+- https://vitest.dev/api/vi.html
+- Vitest provides utility functions to help you out through its vi helper. You can access it globally (when globals configuration is enabled), or import it from vitest directly:
+```typescript
+import { vi } from 'vitest'
+```
+  
+<details><summary>Click to expand..</summary>
+
+# vi.stubEnv 
+- Changes the value of environmental variable on process.env and import.meta.env. You can restore its value by calling vi.unstubAllEnvs.
+```typescript
+import { vi } from 'vitest'
+
+// `process.env.NODE_ENV` and `import.meta.env.NODE_ENV`
+// are "development" before calling "vi.stubEnv"
+
+vi.stubEnv('NODE_ENV', 'production')
+
+process.env.NODE_ENV === 'production'
+import.meta.env.NODE_ENV === 'production'
+
+vi.stubEnv('NODE_ENV', undefined)
+
+process.env.NODE_ENV === undefined
+import.meta.env.NODE_ENV === undefined
+
+// doesn't change other envs
+import.meta.env.MODE === 'development'
+```
+ 
+</details>
+ 
+<br><br>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

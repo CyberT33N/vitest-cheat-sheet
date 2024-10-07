@@ -845,6 +845,7 @@ import { expectTypeOf } from 'vitest'
 expectTypeOf(() => {}).returns.toBeVoid()
 expectTypeOf((a: number) => [a, a]).returns.toEqualTypeOf([1, 2])
 expectTypeOf(ModelManager.getInstance).returns.toEqualTypeOf(Promise.resolve(modelManager))
+expectTypeOf(modelManager['getModels']).returns.toEqualTypeOf<IModel<mongoose.SchemaDefinition<{}>>[]>()
 ```
 
 

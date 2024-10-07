@@ -324,6 +324,23 @@ beforeEach(() => {
 
 
 
+### Define variables in setupFiles and use them in child tests
+```typescript
+// setup-teardown-hook.js
+import { afterAll, beforeAll } from 'vitest';
+beforeAll(() => {
+  global.lol = '🥳';
+});
+afterAll(() => {
+  delete global.lol
+});
+```
+
+
+
+
+
+
 
 
 
@@ -403,6 +420,119 @@ ___________________________________
 <br><br>
 
 # Tests
+
+<br><br>
+<br><br>
+
+
+## Test Environment
+<details><summary>Click to expand..</summary>
+- https://vitest.dev/guide/environment.html#test-environment
+- Vitest provides environment option to run code inside a specific environment. You can modify how environment behaves with environmentOptions option.
+
+By default, you can use these environments:
+
+    node is default environment
+    jsdom emulates browser environment by providing Browser API, uses jsdom package
+    happy-dom emulates browser environment by providing Browser API, and considered to be faster than jsdom, but lacks some API, uses happy-dom package
+    edge-runtime emulates Vercel's edge-runtime, uses @edge-runtime/vm package
+
+
+<br><br>
+
+### populateGlobal
+
+setupFiles:
+```typescript
+// ==== DEPENDENCIES ====
+import { beforeAll } from 'vitest'
+import { populateGlobal } from 'vitest/environments'
+
+// ==== INTERNAL ====
+declare global {
+    var modelDetails: {
+        test: number
+    };
+}
+
+beforeAll(async () => {
+    const modelDetails = {
+       test: 1234
+    } 
+
+    populateGlobal(global, { modelDetails })
+})
+```
+
+test.ts:
+```typescript
+test('sollte auf globale Variable zugreifen', () => {
+  expect(global.modelDetails.test).toBe(1234);
+});
+```
+
+
+</details>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<br><br>
+<br><br>
+___________________________________
+___________________________________
+<br><br>
+<br><br>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

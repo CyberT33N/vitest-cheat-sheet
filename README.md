@@ -441,6 +441,7 @@ By default, you can use these environments:
 <br><br>
 
 ### populateGlobal
+- **Notice that this may f up with your tests in some cases when you use glob. Not sure why**
 
 setupFiles:
 ```typescript

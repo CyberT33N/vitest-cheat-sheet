@@ -860,7 +860,30 @@ expectTypeOf(modelManager.createModel<TMongooseSchema>).parameter(0).toEqualType
     }
 ```
 
+<br><br>
+<br><br>
 
+# parameter
+- https://vitest.dev/api/expect-typeof.html#parameter
+```typescript
+expectTypeOf(modelManager['globModels']).parameter(0).toBeString()
+expectTypeOf(modelManager.createModel<TMongooseSchema>).parameter(0).toEqualTypeOf<IModelCore<TMongooseSchema>>()
+```
+- **This will not work with static methods in classes. Instead use .toBeCallableWith()
+
+
+<br><br>
+<br><br>
+
+# toBeCallableWith
+- https://vitest.dev/api/expect-typeof.html#tobecallablewith
+```typescript
+expectTypeOf(ModelUtils.createMemoryModel).toBeCallableWith(modelCoreDetails)
+```
+
+
+
+<br><br>
 <br><br>
 
 # returns 

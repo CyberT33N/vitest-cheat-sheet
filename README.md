@@ -861,6 +861,10 @@ async function asyncFunc() {
 
 expectTypeOf(asyncFunc).returns.resolves.toBeNumber()
 expectTypeOf(Promise.resolve('string')).resolves.toBeString())
+
+# OTHER EXAMPLES
+expectTypeOf(modelManager['globModels']).returns.resolves.toEqualTypeOf<IModel<mongoose.SchemaDefinition<{}>>[]>()
+expectTypeOf(modelManager['init']).returns.resolves.toBeVoid()
 ```
 
 

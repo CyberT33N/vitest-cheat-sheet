@@ -1,4 +1,4 @@
-# Vitest cheat sheet
+e# Vitest cheat sheet
 
 
 
@@ -832,6 +832,32 @@ expectTypeOf({ a: 1 }).toEqualTypeOf<{ a: number }>()
 expectTypeOf({ a: 1 }).toEqualTypeOf({ a: 1 })
 expectTypeOf({ a: 1 }).toEqualTypeOf({ a: 2 })
 expectTypeOf({ a: 1, b: 1 }).not.toEqualTypeOf<{ a: number }>()
+```
+
+<br><br>
+
+## Generics
+```typescript
+expectTypeOf(modelManager.createModel<TMongooseSchema>).parameter(0).toEqualTypeOf<IModelCore<TMongooseSchema>>()
+
+  /**
+     * Creates a Mongoose model based on the given name, schema, and database name.
+     * @template TMongooseSchema - The type of the mongoose schema.
+     * @param modelDetails - An object containing the model's details.
+     * @returns A promise that resolves to the created Mongoose Model instance.
+     */
+    public async createModel<TMongooseSchema>({
+        modelName,
+        schema,
+        dbName
+    }: IModelCore<TMongooseSchema>): Promise< mongoose.Model<TMongooseSchema> > {
+        const mongooseUtils = await MongooseUtils.getInstance(dbName)
+        const Model = await mongooseUtils.createModel<TMongooseSchema>(schema, modelName)
+        
+        // Ensure indexes are created for the model
+        await Model.createIndexes()
+        return Model
+    }
 ```
 
 

@@ -870,8 +870,10 @@ import { expectTypeOf } from 'vitest'
 
 expectTypeOf(() => {}).returns.toBeVoid()
 expectTypeOf((a: number) => [a, a]).returns.toEqualTypeOf([1, 2])
-expectTypeOf(ModelManager.getInstance).returns.toEqualTypeOf(Promise.resolve(modelManager))
 expectTypeOf(modelManager['getModels']).returns.toEqualTypeOf<IModel<mongoose.SchemaDefinition<{}>>[]>()
+
+# If needed you can call a promise by yourself and check it with returns but it is recommended to use resolve
+expectTypeOf(ModelManager.getInstance).returns.toEqualTypeOf(Promise.resolve(modelManager))
 ```
 
 
@@ -890,6 +892,9 @@ expectTypeOf(asyncFunc).returns.resolves.toBeNumber()
 expectTypeOf(Promise.resolve('string')).resolves.toBeString())
 
 # OTHER EXAMPLES
+expectTypeOf(ModelManager.getInstance).returns.resolves.toEqualTypeOf<ModelManager>()
+
+# Private class methods
 expectTypeOf(modelManager['globModels']).returns.resolves.toEqualTypeOf<IModel<mongoose.SchemaDefinition<{}>>[]>()
 expectTypeOf(modelManager['init']).returns.resolves.toBeVoid()
 ```

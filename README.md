@@ -824,6 +824,22 @@ import.meta.env.MODE === 'development'
   
 <details><summary>Click to expand..</summary>
 
+
+# private class constructor
+- As far as I know there is no way to test a private constructor for params types. You can only create a new method like below. However, when you use getInstance as Single method and this is the reason why your constructor is private the you can test this method:
+```typescript
+class Foo {
+    private constructor(private x: number) {}
+
+    /** @internal */
+    static createForTesting(x: number) {
+        return new Foo(x);
+    }
+}
+
+const instance = Foo.createForTesting(5);
+```
+
 <br><br>
 
 # toEqualTypeOf 

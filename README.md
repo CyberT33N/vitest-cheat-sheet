@@ -359,7 +359,9 @@ afterAll(() => {
 
 ## globalSetup
 - https://vitest.dev/config/#globalsetup
-- test/setup-tests.ts:
+- **Notice that this file should be used to start an express server or something like this. If you want to declare variables before each tests you should use setupFiles instead. Because if you would set global.test=123 in the globalSetup file in the exported setup() then it would be undefined in your tests.**
+  
+test/setup-tests.ts:
 ```typescript
 export async function setup() {
     server.start()

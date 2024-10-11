@@ -328,8 +328,18 @@ beforeEach(() => {
 ```typescript
 // setup-teardown-hook.js
 import { afterAll, beforeAll } from 'vitest';
+
+
+// ==== INTERNAL ====
+declare global {
+    var lol: {
+        test: number
+    };
+}
+
+
 beforeAll(() => {
-  global.lol = '🥳';
+  global.lol = 123;
 });
 afterAll(() => {
   delete global.lol

@@ -411,6 +411,59 @@ export async function teardown() {
 
 
 
+<br><br>
+<br><br>
+___________________________________
+___________________________________
+<br><br>
+<br><br>
+
+# Snapshot
+- https://vitest.dev/guide/snapshot
+```typescript
+import { expect, it } from 'vitest'
+
+it('toUpperCase', () => {
+  const result = toUpperCase('foobar')
+  expect(result).toMatchSnapshot()
+})
+```
+he first time this test is run, Vitest creates a snapshot file that looks like this:
+```typescript
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+exports['toUpperCase 1'] = '"FOOBAR"'
+```
+The snapshot artifact should be committed alongside code changes, and reviewed as part of your code review process. On subsequent test runs, Vitest will compare the rendered output with the previous snapshot. If they match, the test will pass. If they don't match, either the test runner found a bug in your code that should be fixed, or the implementation has changed and the snapshot needs to be updated.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 <br><br>
 <br><br>

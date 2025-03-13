@@ -392,6 +392,7 @@ export default mergedCfg
 <details><summary>Click to expand..</summary>
 
 ```typescript
+
 // ==== DEPENDENCIES ====
 import {
      defineConfig, mergeConfig,
@@ -399,7 +400,7 @@ import {
 } from 'vitest/config'
 
 // 🔌 Import the base Vitest configuration
-import vitestConfig from './vitest.config'
+import baseConfig from './vitest.config'
 
 // 📋 Define the integration test configuration
 const cfg: ViteUserConfig = defineConfig({
@@ -415,24 +416,6 @@ const cfg: ViteUserConfig = defineConfig({
           * @type {string}
           */
          globalSetup: 'test/integration/pretestAll.ts',
-
-         /** 
-          * Specifies the coverage configuration.
-          * @type {Object}
-          */
-         coverage: {
-             /** 
-              * Specifies the coverage provider to use.
-              * @type {string}
-              */
-             provider: 'v8',
-
-             /**
-              * Specifies the files or directories to include for coverage.
-              * @type {Array<string>}
-              */
-             include: ['src/controllers/']
-         }
      }
  })
 
@@ -440,7 +423,14 @@ const cfg: ViteUserConfig = defineConfig({
  * 🛠️ Merges the existing Vitest configuration with additional custom 
  * configurations defined below.
  */
-const mergedCfg = mergeConfig(vitestConfig, defineConfig(cfg))
+// Zuerst die Konfigurationen mergen
+const mergedCfg = mergeConfig(baseConfig, defineConfig(cfg))
+
+// Dann explizit das coverage.include überschreiben
+if (mergedCfg.test?.coverage) {
+    mergedCfg.test.coverage.include = ['src/controllers/']
+}
+
 export default mergedCfg
 ```
 

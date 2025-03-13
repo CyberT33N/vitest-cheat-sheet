@@ -183,28 +183,114 @@ ___________________________________
 # vitest.config.ts
 - https://vitest.dev/config/
 
-<br><br>
-
-## Load environment varialbes
+<details><summary>Click to expand..</summary>
+ 
 ```typescript
-// ==== VITEST ====
-import { defineConfig } from 'vitest/config'
-import react from '@vitejs/plugin-react'
+
+// ==== DEPENDENCIES ====
 import tsconfigPaths from 'vite-tsconfig-paths'
+import { defineConfig, type ViteUserConfig } from 'vitest/config'
 
-// ==== NEXT.JS ====
-import { loadEnvConfig } from '@next/env'
-loadEnvConfig(process.cwd())
+// 🌐 Import dotenv to load environment variables from .env files
+import dotenv from 'dotenv'
 
-export default defineConfig({
-    plugins: [tsconfigPaths(), react()],
-    test: {
-        environment: 'node',
-        globalSetup: 'test/setup-tests.ts'
-    }
+// 🔧 Load the default environment variables from the .env file
+dotenv.config()
+
+// 🔄 Load the test environment variables from .env.test and override defaults
+dotenv.config({ path: '.env.test', override: true })
+
+const cfg: ViteUserConfig = defineConfig({
+     /** 
+      * List of plugins to be used in the configuration.
+      */
+     plugins: [tsconfigPaths()], // 🔌 Add tsconfig paths plugin
+ 
+     /** 
+      * Configuration options for tests.
+      */
+     test: {
+         /** 
+          * Indicates whether to watch files for changes.
+          * @type {boolean}
+          */
+         watch: false, // 🚫 Disable watch mode
+ 
+         /** 
+          * Path to the setup file that runs before each test. 
+          * @type {string}
+          */
+         setupFiles: 'test/unit/pretestEach.ts',
+ 
+         /** 
+          * Path to the global setup file for integration tests.
+          * @type {string}
+          */
+         globalSetup: 'test/integration/pretestAll.ts',
+ 
+         /** 
+          * The environment in which the tests will run.
+          * @type {string}
+          */
+         environment: 'node', // 🌐 Test environment set to Node.js
+ 
+         typecheck: {
+             // 🔍 Specify files to include for type checking
+             include: ['**/*.{test,spec}.?(c|m)[jt]s?(x)']
+         },
+ 
+         /** 
+          * Configuration for coverage reporting.
+          */
+         coverage: {
+             /** 
+              * Specifies the coverage provider to use.
+              * @type {string}
+              */
+             provider: 'v8',
+
+             /** 
+              * Specifies the directories to include for coverage.
+              * @type {Array<string>}
+              */
+             include: ['src/'],
+ 
+             /** 
+              * Specifies the files or directories to exclude from coverage.
+              * @type {Array<string>}
+              */
+             exclude: ['dist/'],
+ 
+             /** 
+              * Specifies the coverage reporters to use.
+              * @type {Array<string>}
+              */
+             reporter: ['text', 'json', 'html']
+         }
+     }
 })
+
+/**
+ * Represents the configuration for the Vitest test runner.
+ */
+export default cfg
 ```
-- environment must be node
+
+
+</details>
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -220,48 +306,149 @@ export default defineConfig({
 ## vitest.unit.config.ts
 - package.json add to scripts `"test:unit": "vitest run --testTimeout=300000 --coverage --disable-console-intercept --watch=false --config vitest.unit.config.ts"`
 
-```typescriot
-// ==== VITEST ====
-import { defineConfig, mergeConfig } from 'vitest/config'
+<details><summary>Click to expand..</summary>
+
+```typescript
+
+// ==== DEPENDENCIES ====
+import {
+     defineConfig, mergeConfig,
+     type ViteUserConfig
+} from 'vitest/config'
+
+// 🔌 Import the base Vitest configuration
 import vitestConfig from './vitest.config'
 
-export default mergeConfig(vitestConfig, defineConfig({
-    test: {
-        include: ['test/unit/**/*.test.ts'],
-        setupFiles: 'test/unit/pretestEach.ts',
-        watch: false,
-        coverage: {
-            exclude: ['**/route.ts']
-        }
-    }
-}))
+// 📋 Define the unit test configuration
+const cfg: ViteUserConfig = defineConfig({
+     test: {
+         /** 
+          * Specifies the test files to include.
+          * @type {Array<string>}
+          */
+         include: ['test/unit/**/*.test.ts'],
+
+         /** 
+          * Specifies the setup file to use.
+          * @type {string}
+          */
+         setupFiles: 'test/unit/pretestEach.ts',
+
+         /** 
+          * Specifies the coverage configuration.
+          * @type {Object}
+          */
+         coverage: {
+             /** 
+              * Specifies the coverage provider to use.
+              * @type {string}
+              */
+             provider: 'v8',
+
+             /**
+              * Specifies the files or directories to exclude from coverage.
+              * @type {Array<string>}
+              */
+             exclude: ['src/controllers/']
+         }
+     }
+})
+
+/**
+ * 🛠️ Merges the existing Vitest configuration with additional custom 
+ * configurations defined below.
+ */
+const mergedCfg = mergeConfig(vitestConfig, defineConfig(cfg))
+export default mergedCfg
 ```
+
+</details>
+
+
+
+
+
+
+
+
+
+
+
 
 <br><br>
 <br><br>
+<br><br>
+<br><br>
+
+
+
+
+
 
 ## vitest.integration.config.ts
 - package.json add to scripts `"test:integration": "vitest run --testTimeout=300000 --coverage --disable-console-intercept --watch=false --config vitest.integration.config.ts"`
 
-```typescriot
+<details><summary>Click to expand..</summary>
 
-// ==== VITEST ====
-import { defineConfig, mergeConfig } from 'vitest/config'
+```typescript
+// ==== DEPENDENCIES ====
+import {
+     defineConfig, mergeConfig,
+     type ViteUserConfig
+} from 'vitest/config'
+
+// 🔌 Import the base Vitest configuration
 import vitestConfig from './vitest.config'
 
-const cfg = mergeConfig(vitestConfig, defineConfig({
-    test: {
-        include: ['test/integration/**/*.test.ts'],
-        globalSetup: 'test/integration/pretestAll.ts',
-        watch: false
-    }
-}))
+// 📋 Define the integration test configuration
+const cfg: ViteUserConfig = defineConfig({
+     test: {
+         /**   
+          * Specifies the test files to include.
+          * @type {Array<string>}
+          */
+         include: ['test/integration/**/*.test.ts'],
 
+         /**    
+          * Specifies the global setup file to use.
+          * @type {string}
+          */
+         globalSetup: 'test/integration/pretestAll.ts',
 
-cfg.test.coverage.include = ['src/middleware.ts']
+         /** 
+          * Specifies the coverage configuration.
+          * @type {Object}
+          */
+         coverage: {
+             /** 
+              * Specifies the coverage provider to use.
+              * @type {string}
+              */
+             provider: 'v8',
 
-export default cfg
+             /**
+              * Specifies the files or directories to include for coverage.
+              * @type {Array<string>}
+              */
+             include: ['src/controllers/']
+         }
+     }
+ })
+
+/**
+ * 🛠️ Merges the existing Vitest configuration with additional custom 
+ * configurations defined below.
+ */
+const mergedCfg = mergeConfig(vitestConfig, defineConfig(cfg))
+export default mergedCfg
 ```
+
+
+
+</details>
+
+
+
 
 
 

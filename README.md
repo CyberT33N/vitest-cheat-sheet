@@ -235,6 +235,7 @@ const cfg: ViteUserConfig = defineConfig({
          environment: 'node', // 🌐 Test environment set to Node.js
  
          typecheck: {
+             enabled: true,
              // 🔍 Specify files to include for type checking
              include: ['**/*.{test,spec}.?(c|m)[jt]s?(x)']
          },

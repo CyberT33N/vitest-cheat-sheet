@@ -999,11 +999,20 @@ ___________________________________
 
 # API
 
+
+
+
+
+<br><br>
 <br><br>
 
 ## Testing Types
 - https://vitest.dev/guide/testing-types
-- Vitest allows you to write tests for your types, using expectTypeOf or assertType syntaxes. By default all tests inside *.test-d.ts files are considered type tests, but you can change it with typecheck.include config option. Here is an example to type check any .test.ts file instead of only *.test-d.ts. **However, it is recommended to create own tests files for type checks instead of bundle everything into as single file**
+- Vitest allows you to write tests for your types, using expectTypeOf or assertType syntaxes. By default all tests inside *.test-d.ts files are considered type tests, but you can change it with typecheck.include config option.
+
+<details><summary>Click to expand..</summary>
+
+- Here is an example to type check any .test.ts file instead of only *.test-d.ts. **However, it is recommended to create own tests files for type checks instead of bundle everything into as single file**
 ```typescript
 import dotenv from 'dotenv'
 // Load .env 
@@ -1059,6 +1068,9 @@ export default defineConfig({
   }
 }
 ```
+
+
+</details>
 
 
 

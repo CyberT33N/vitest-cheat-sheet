@@ -1069,6 +1069,7 @@ ___________________________________
 
 
 
+<details><summary>Click to expand..</summary>
 
 
 <br><br>
@@ -1482,5 +1483,20 @@ test('throws on pineapples', async () => {
   await expect(() => getAsyncFruitStock()).rejects.toThrowError('empty')
 })
 ```
+
+</details>
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 </details>

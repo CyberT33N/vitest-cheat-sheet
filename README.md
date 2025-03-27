@@ -51,6 +51,9 @@ ___________________________________
 
 
 # CLI
+
+<details><summary>Click to expand..</summary>
+
 ```
 Usage:
   $ vitest [...filters]
@@ -150,7 +153,7 @@ Options:
 ## timeout
 - `--testTimeout=5000`
 
-
+</details>
 
 
 

@@ -469,6 +469,8 @@ export default mergedCfg
 - https://vitest.dev/config/#setupfiles
 - Path to setup files. They will be run before each test file.
 
+<details><summary>Click to expand..</summary>
+
 vitest.config.ts
 ```
 export default defineConfig({
@@ -527,6 +529,23 @@ afterAll(() => {
 });
 ```
 
+</details>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -541,6 +560,9 @@ afterAll(() => {
 ## globalSetup
 - https://vitest.dev/config/#globalsetup
 - **Notice that this file should be used to start an express server or something like this. If you want to declare variables before each tests you should use setupFiles instead. Because if you would set global.test=123 in the globalSetup file in the exported setup() then it would be undefined in your tests.**
+
+
+<details><summary>Click to expand..</summary>
   
 test/setup-tests.ts:
 ```typescript
@@ -555,6 +577,8 @@ export async function teardown() {
   - A global setup file can either export named functions setup and teardown or a default function that returns a teardown function ([example](https://github.com/vitest-dev/vitest/blob/main/test/global-setup/vitest.config.ts)).
 
 
+
+</details>
 
 
 

@@ -1,6 +1,7 @@
 # vitest.config.ts
 
 Die Hauptkonfigurationsdatei für Vitest, die die grundlegenden Einstellungen für die Testumgebung definiert.
+- **Notice in order that mergeConfig is working at properties like setupFiles you must use array instead of string!**
 
 ```typescript
 // ==== DEPENDENCIES ====

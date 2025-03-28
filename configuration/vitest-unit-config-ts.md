@@ -11,6 +11,7 @@ In der `package.json` kann der folgende Eintrag hinzugefügt werden, um die Unit
 ```
 
 ## Konfigurationsdatei
+- **Notice in order that mergeConfig is working at properties like setupFiles you must use array instead of string!**
 
 ```typescript
 // ==== DEPENDENCIES ====

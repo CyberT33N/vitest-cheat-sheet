@@ -1,18 +1,5 @@
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Method #2 (--config) - Not recommended
+# Config Method (--config) - **Not recommended please check workspace example instead**
 - Diese Methode benutzt den Config-Flag, um Configs für z.B. Integrations- oder Unit-Test-Configs zu laden. An sich, wenn man es einzeln ausführt, funktioniert es. Wenn man aber V-Test allgemein ausführt, werden die unterliegenden Configs nicht geladen, da sie nicht im Workspace sind. Das kann zu Problemen führen, weil wenn wir z.B. in der Integrations-Test-Config einen Express-Server hochfahren im Global Setup, dann passiert das nicht, wenn wir allgemeinen NPM-Run-Test ausführen.
 
 ```javascript

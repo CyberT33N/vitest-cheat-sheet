@@ -13,12 +13,7 @@ Eine umfassende Sammlung von Tipps, Konfigurationen und Best Practices für die 
    - [Timeout](./cli/index.md#timeout)
 
 3. [Konfiguration](./configuration/index.md)
-   - [vitest.config.ts](./configuration/vitest-config-ts.md)
-   - [vitest.unit.config.ts](./configuration/vitest-unit-config-ts.md)
-   - [vitest.integration.config.ts](./configuration/vitest-integration-config-ts.md)
-   - [setupFiles](./configuration/setup-files.md)
-   - [globalSetup](./configuration/global-setup.md)
-   - [watch](./configuration/watch.md)
+   - [config-examples](./configuration/config-examples.md)
 
 4. [Snapshots](./snapshots/index.md)
 

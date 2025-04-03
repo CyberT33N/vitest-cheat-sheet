@@ -49,3 +49,7 @@ test('sollte auf globale Variable zugreifen', () => {
   expect(global.modelDetails.test).toBe(1234);
 });
 ``` 
+
+## Weitere Beispiele für globale Konfigurationen
+
+- [Globale Konfiguration mit Axios](../configuration/global-configuration/test-setup-axios.md) - Beispiel für die Einrichtung einer globalen Axios-Instanz für Tests 

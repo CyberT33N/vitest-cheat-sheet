@@ -118,59 +118,60 @@ npx vitest --typecheck --coverage --watch=false --disable-console-intercept
 
 
 
+
+
+
 ---
 
-### 🔹 2. CLI-Filter via Pattern Matching
+### 🔹 2. CLI-Filter via Pattern Matching (mit Debug)
 
 ```bash
 vitest run -t "macht dies und das"
 ```
 
-**`-t` bzw. `--testNamePattern`**: Führt nur Tests aus, deren Namen auf das Pattern passen. Regex-kompatibel.
+**`-t` bzw. `--testNamePattern`**: Führt nur Tests aus, deren Namen auf das Pattern passen. Regex geht auch.
 
 ```bash
 vitest run -t "/macht.*das/"
 ```
 
-Auch im **Debug-Modus** kombinierbar:
+👉 **Debug-Modus richtig**:
 
 ```bash
-vitest run --inspect --run --threads=false -t "Testname"
+vitest run --inspect-brk --no-file-parallelism -t "Testname"
 ```
 
 ---
 
-### 🔹 3. Datei direkt ausführen
+### 🔹 3. Datei direkt ausführen (Debug-safe)
 
 ```bash
 vitest run path/to/file.spec.ts
 ```
 
-Optional mit `--inspect` zum Debuggen:
+✅ Debug-Version:
 
 ```bash
-node --inspect-brk node_modules/vitest/vitest.mjs run path/to/file.spec.ts
+vitest run --inspect-brk --no-file-parallelism path/to/file.spec.ts
 ```
 
-Oder Shorty via:
+Oder komplett ohne vitest bin-wrapper:
 
 ```bash
-vitest run --inspect path/to/file.spec.ts
+node --inspect-brk node_modules/vitest/vitest.mjs run --no-file-parallelism path/to/file.spec.ts
 ```
 
 ---
 
-### 🔹 4. VS Code Debug-Config (🔥 der elegante Weg)
-
-`launch.json`:
+### 🔹 4. VS Code Debug-Config (🔥 elegant und funktional)
 
 ```json
 {
   "type": "node",
   "request": "launch",
-  "name": "Debug Vitest",
+  "name": "Debug Vitest File",
   "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
-  "args": ["run", "--inspect-brk", "--threads=false", "tests/mein.test.ts"],
+  "args": ["run", "--inspect-brk", "--no-file-parallelism", "tests/mein.test.ts"],
   "autoAttachChildProcesses": true,
   "smartStep": true,
   "skipFiles": ["<node_internals>/**"],
@@ -178,65 +179,80 @@ vitest run --inspect path/to/file.spec.ts
 }
 ```
 
-Du kannst `"args"` mit `-t "testname"` kombinieren für granulare Auswahl.
+➡️ Kombinierbar mit:
+
+```json
+"args": ["run", "--inspect-brk", "--no-file-parallelism", "-t", "spezifischer Test"]
+```
 
 ---
 
 ### 🔹 5. `vitest watch` mit interaktivem UI
 
-Start:
-
 ```bash
 vitest watch
 ```
 
-Dann: Mit `p` (pattern) nur bestimmte Tests matchen.  
-Mit `o` `.only`-Modi toggeln.  
-Mit `t` Tests selektiv ausführen.
+Nutze:
+- `p` → Pattern-Filter (Testnamen)
+- `o` → `.only` toggle
+- `t` → einzelne Tests ausführen
 
-Cool zum Rumspielen – nix für CI, aber top fürs Debuggen.
+🧠 Tipp: Kein echter Debug-Modus. Kein `--inspect-brk` hier – nur gut zum schnellen Rumspielen.
 
 ---
 
-### 🔹 6. Temporäres `.skip()` für alles andere
-
-Nicht schön, aber brutal direkt:
+### 🔹 6. Temporäres `.skip()` für radikale Fokussierung
 
 ```ts
 test.skip('nicht jetzt', () => {})
 ```
 
-Oder ALLES außer eins:
+Oder Gruppenweise:
 
 ```ts
-describe.skip('riesige Test-Gruppe', () => {
-  // massiver Wust
-})
+describe.skip('nicht heute', () => {})
 ```
 
 ---
 
-### Bonus: 💡 Debug mit `--threads=false`
+### 💡 Debug richtig = `--no-file-parallelism`
 
-Das **deaktiviert parallele Threads**, wichtig für Debugger wie Chrome DevTools oder VS Code, sonst breakpoints werden ignoriert.
+Das ist **Pflicht**, wenn du mit `--inspect-brk` arbeitest. Alles andere kracht.
 
 ```bash
-vitest run --inspect-brk --threads=false
+vitest run --inspect-brk --no-file-parallelism
 ```
 
 ---
 
-### TL;DR (wie Kollegah’s Hook):
+### ⚡ TL;DR (wie Kollegah’s Hook nach 8 Lines Aufbau):
 
-| Methode             | Nutzen                            | Debug-fähig |
-|---------------------|-----------------------------------|-------------|
-| `.only()`           | Schnell und im Code direkt        | ✅           |
-| `-t`                | Präziser Name-Match               | ✅           |
-| Dateipfad           | Nur bestimmte Datei               | ✅           |
-| VS Code Config      | Sauber und wiederverwendbar       | ✅✅         |
-| `vitest watch`      | Interaktives UI                   | ⚠️           |
-| `.skip()`           | Holzhammer                        | ❌           |
+| Methode             | Nutzen                            | Debug-fähig           |
+|---------------------|-----------------------------------|------------------------|
+| `.only()`           | Schnell, direkt im Code           | ✅                     |
+| `-t`                | Präziser Testname-Match           | ✅ (mit `--no-file-parallelism`) |
+| Dateipfad           | Nur bestimmte Datei               | ✅ (dito)              |
+| VS Code Config      | Reproduzierbar & bequem           | ✅✅                   |
+| `vitest watch`      | Interaktiv, aber ohne Debugger    | ⚠️                     |
+| `.skip()`           | Holzhammer                        | ❌                     |
 
 ---
 
-Wenn du willst, baue ich dir `vitest-debug` alias-Skripte für `package.json`, damit du per Tastenkürzel alles steuern kannst wie ein Boss 😎.
+Wenn du willst, baller ich dir noch `npm run` Shortcuts rein:
+
+```json
+"scripts": {
+  "test:debug:file": "vitest run --inspect-brk --no-file-parallelism",
+  "test:debug:name": "vitest run --inspect-brk --no-file-parallelism -t"
+}
+```
+
+Dann einfach:
+
+```bash
+npm run test:debug:file -- tests/mein.test.ts
+npm run test:debug:name -- "mein Testname"
+```
+
+Jetzt bist du vollgepanzert. Debuggen wie ein Sniper auf Speed 😎

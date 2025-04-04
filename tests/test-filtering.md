@@ -6,9 +6,32 @@ Offizielle Dokumentation: [https://vitest.dev/guide/filtering.html](https://vite
 
 ## .only
 
+<details><summary>Click to expand..</summary>
+
 Mit `.only` können bestimmte Tests oder Testsuiten ausgewählt werden, die ausgeführt werden sollen.
 
 Offizielle Dokumentation: [https://vitest.dev/guide/filtering#selecting-suites-and-tests-to-run](https://vitest.dev/guide/filtering#selecting-suites-and-tests-to-run)
+
+
+
+```ts
+test.only('macht dies und das', () => {
+  // Testinhalt
+})
+```
+
+Oder auf `describe`-Ebene:
+
+```ts
+describe.only('Gruppe von Tests', () => {
+  test('macht A', () => {})
+})
+```
+
+
+
+
+
 
 In der aktuellen Version sollte dies wie erwartet funktionieren und nur der ausgewählte Test sollte ausgeführt werden, nicht alle anderen parallel dazu. Falls nicht, gibt es hier einige Workarounds:
 
@@ -83,4 +106,137 @@ export default defineConfig({
 }
 
 # Führe alle Tests aus
-npx vitest --typecheck --coverage --watch=false --disable-console-intercept 
+npx vitest --typecheck --coverage --watch=false --disable-console-intercept
+```
+
+
+
+
+</details>
+
+
+
+
+
+---
+
+### 🔹 2. CLI-Filter via Pattern Matching
+
+```bash
+vitest run -t "macht dies und das"
+```
+
+**`-t` bzw. `--testNamePattern`**: Führt nur Tests aus, deren Namen auf das Pattern passen. Regex-kompatibel.
+
+```bash
+vitest run -t "/macht.*das/"
+```
+
+Auch im **Debug-Modus** kombinierbar:
+
+```bash
+vitest run --inspect --run --threads=false -t "Testname"
+```
+
+---
+
+### 🔹 3. Datei direkt ausführen
+
+```bash
+vitest run path/to/file.spec.ts
+```
+
+Optional mit `--inspect` zum Debuggen:
+
+```bash
+node --inspect-brk node_modules/vitest/vitest.mjs run path/to/file.spec.ts
+```
+
+Oder Shorty via:
+
+```bash
+vitest run --inspect path/to/file.spec.ts
+```
+
+---
+
+### 🔹 4. VS Code Debug-Config (🔥 der elegante Weg)
+
+`launch.json`:
+
+```json
+{
+  "type": "node",
+  "request": "launch",
+  "name": "Debug Vitest",
+  "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+  "args": ["run", "--inspect-brk", "--threads=false", "tests/mein.test.ts"],
+  "autoAttachChildProcesses": true,
+  "smartStep": true,
+  "skipFiles": ["<node_internals>/**"],
+  "console": "integratedTerminal"
+}
+```
+
+Du kannst `"args"` mit `-t "testname"` kombinieren für granulare Auswahl.
+
+---
+
+### 🔹 5. `vitest watch` mit interaktivem UI
+
+Start:
+
+```bash
+vitest watch
+```
+
+Dann: Mit `p` (pattern) nur bestimmte Tests matchen.  
+Mit `o` `.only`-Modi toggeln.  
+Mit `t` Tests selektiv ausführen.
+
+Cool zum Rumspielen – nix für CI, aber top fürs Debuggen.
+
+---
+
+### 🔹 6. Temporäres `.skip()` für alles andere
+
+Nicht schön, aber brutal direkt:
+
+```ts
+test.skip('nicht jetzt', () => {})
+```
+
+Oder ALLES außer eins:
+
+```ts
+describe.skip('riesige Test-Gruppe', () => {
+  // massiver Wust
+})
+```
+
+---
+
+### Bonus: 💡 Debug mit `--threads=false`
+
+Das **deaktiviert parallele Threads**, wichtig für Debugger wie Chrome DevTools oder VS Code, sonst breakpoints werden ignoriert.
+
+```bash
+vitest run --inspect-brk --threads=false
+```
+
+---
+
+### TL;DR (wie Kollegah’s Hook):
+
+| Methode             | Nutzen                            | Debug-fähig |
+|---------------------|-----------------------------------|-------------|
+| `.only()`           | Schnell und im Code direkt        | ✅           |
+| `-t`                | Präziser Name-Match               | ✅           |
+| Dateipfad           | Nur bestimmte Datei               | ✅           |
+| VS Code Config      | Sauber und wiederverwendbar       | ✅✅         |
+| `vitest watch`      | Interaktives UI                   | ⚠️           |
+| `.skip()`           | Holzhammer                        | ❌           |
+
+---
+
+Wenn du willst, baue ich dir `vitest-debug` alias-Skripte für `package.json`, damit du per Tastenkürzel alles steuern kannst wie ein Boss 😎.

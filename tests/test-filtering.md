@@ -122,48 +122,35 @@ npx vitest --typecheck --coverage --watch=false --disable-console-intercept
 
 
 ---
-
-### 🔹 2. CLI-Filter via Pattern Matching (mit Debug)
-
-```bash
-vitest run -t "macht dies und das"
-```
-
-**`-t` bzw. `--testNamePattern`**: Führt nur Tests aus, deren Namen auf das Pattern passen. Regex geht auch.
-
-```bash
-vitest run -t "/macht.*das/"
-```
-
-👉 **Debug-Modus richtig**:
-
-```bash
-vitest run --inspect-brk --no-file-parallelism -t "Testname"
-```
+Exakt, du hast’s durchschaut wie Sherlock nach drei Espresso ☕🔍
 
 ---
 
-### 🔹 3. Datei direkt ausführen (Debug-safe)
+### 🧠 Warum das so ist:
 
-```bash
-vitest run path/to/file.spec.ts
-```
-
-✅ Debug-Version:
-
-```bash
-vitest run --inspect-brk --no-file-parallelism path/to/file.spec.ts
-```
-
-Oder komplett ohne vitest bin-wrapper:
-
-```bash
-node --inspect-brk node_modules/vitest/vitest.mjs run --no-file-parallelism path/to/file.spec.ts
-```
+Wenn du `vitest` im **Terminal** ausführst mit `--inspect-brk`,  
+dann *läuft der Node-Prozess zwar im Debug-Modus*,  
+aber **VS Code weiß nix davon** — kein Attach, kein Magic, keine Breakpoints 💥
 
 ---
 
-### 🔹 4. VS Code Debug-Config (🔥 elegant und funktional)
+### 💣 Das Terminal ≠ Debug-Konsole
+
+VS Code erkennt nur Debug-Sessions, wenn:
+
+1. Du sie über `launch.json` startest  
+2. Du ein Skript aus `package.json` über **"Debug Script"** startest  
+3. Oder du ein **Attach-Profil** manuell aktivierst
+
+---
+
+### ✅ Drei Lösungen, um das sauber zu machen:
+
+---
+
+#### 🔹 **Lösung 1: Nutze `launch.json` für alles**
+
+Mach dir mehrere Einträge:
 
 ```json
 {
@@ -171,88 +158,62 @@ node --inspect-brk node_modules/vitest/vitest.mjs run --no-file-parallelism path
   "request": "launch",
   "name": "Debug Vitest File",
   "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
-  "args": ["run", "--inspect-brk", "--no-file-parallelism", "tests/mein.test.ts"],
-  "autoAttachChildProcesses": true,
-  "smartStep": true,
-  "skipFiles": ["<node_internals>/**"],
-  "console": "integratedTerminal"
+  "args": ["run", "--inspect-brk", "--no-file-parallelism", "test/unit/services/evident/EvidentDatabaseIsolation.test.ts"],
+  "console": "integratedTerminal",
+  "autoAttachChildProcesses": true
 }
 ```
 
-➡️ Kombinierbar mit:
+Oder mit `-t` für gezielten Test:
 
 ```json
-"args": ["run", "--inspect-brk", "--no-file-parallelism", "-t", "spezifischer Test"]
+"args": ["run", "--inspect-brk", "--no-file-parallelism", "-t", "spezifischer Testname"]
 ```
+
+Dann per F5 starten oder in der Debug-Leiste auswählen – und **Breakpoints wirken wie Zauber** ✨
 
 ---
 
-### 🔹 5. `vitest watch` mit interaktivem UI
+#### 🔹 **Lösung 2: Run-Skripte debuggen (dein Weg mit Hover)**
 
-```bash
-vitest watch
-```
-
-Nutze:
-- `p` → Pattern-Filter (Testnamen)
-- `o` → `.only` toggle
-- `t` → einzelne Tests ausführen
-
-🧠 Tipp: Kein echter Debug-Modus. Kein `--inspect-brk` hier – nur gut zum schnellen Rumspielen.
-
----
-
-### 🔹 6. Temporäres `.skip()` für radikale Fokussierung
-
-```ts
-test.skip('nicht jetzt', () => {})
-```
-
-Oder Gruppenweise:
-
-```ts
-describe.skip('nicht heute', () => {})
-```
-
----
-
-### 💡 Debug richtig = `--no-file-parallelism`
-
-Das ist **Pflicht**, wenn du mit `--inspect-brk` arbeitest. Alles andere kracht.
-
-```bash
-vitest run --inspect-brk --no-file-parallelism
-```
-
----
-
-### ⚡ TL;DR (wie Kollegah’s Hook nach 8 Lines Aufbau):
-
-| Methode             | Nutzen                            | Debug-fähig           |
-|---------------------|-----------------------------------|------------------------|
-| `.only()`           | Schnell, direkt im Code           | ✅                     |
-| `-t`                | Präziser Testname-Match           | ✅ (mit `--no-file-parallelism`) |
-| Dateipfad           | Nur bestimmte Datei               | ✅ (dito)              |
-| VS Code Config      | Reproduzierbar & bequem           | ✅✅                   |
-| `vitest watch`      | Interaktiv, aber ohne Debugger    | ⚠️                     |
-| `.skip()`           | Holzhammer                        | ❌                     |
-
----
-
-Wenn du willst, baller ich dir noch `npm run` Shortcuts rein:
+In `package.json`:
 
 ```json
 "scripts": {
-  "test:debug:file": "vitest run --inspect-brk --no-file-parallelism",
-  "test:debug:name": "vitest run --inspect-brk --no-file-parallelism -t"
+  "test:debug": "vitest run --inspect-brk --no-file-parallelism test/unit/services/evident/EvidentDatabaseIsolation.test.ts"
 }
 ```
 
-Dann einfach:
+Dann:
+- Hover über das Skript im `package.json`
+- Klick auf **"Debug Script"**
+
+✅ Breakpoints feuern  
+✅ Kein extra `launch.json` nötig  
+✅ Shortcuts wie `STRG + SHIFT + P → Debug npm script` funktionieren
+
+---
+
+#### 🔹 **Lösung 3: Attach to Running Process (manual gangsta mode)**
+
+Wenn du **unbedingt aus dem Terminal** starten willst:
 
 ```bash
-npm run test:debug:file -- tests/mein.test.ts
-npm run test:debug:name -- "mein Testname"
+vitest run --inspect-brk --no-file-parallelism test/unit/services/evident/EvidentDatabaseIsolation.test.ts
 ```
 
-Jetzt bist du vollgepanzert. Debuggen wie ein Sniper auf Speed 😎
+Dann in VS Code:
+
+- `STRG + SHIFT + P` → `Debug: Attach to Node Process`
+- Pick den richtigen PID
+
+⚠️ Klappt, aber ist nerviger als direkt F5
+
+---
+
+### ✅ Fazit:  
+Debugging in Node ist kein Hexenwerk, aber VS Code muss **explizit wissen**, dass er attachen soll. Nur dann setzt er die Breakpoints korrekt.
+
+---
+
+Willst du eine `launch.json` mit verschiedenen Targets (Einzeltest, Pattern, Datei)? Ich bau dir die wie ein Maschinengewehr mit verschiedenen Feuermodi.

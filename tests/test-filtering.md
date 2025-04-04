@@ -4,6 +4,178 @@ Vitest bietet verschiedene Möglichkeiten, Tests zu filtern und nur bestimmte Te
 
 Offizielle Dokumentation: [https://vitest.dev/guide/filtering.html](https://vitest.dev/guide/filtering.html)
 
+
+
+
+
+
+
+## 🔍 Testausführung & Filter (ohne Debugging)
+
+<details><summary>Click to expand...</summary>
+
+### 📁 Einzelne Datei ausführen
+
+```bash
+npx vitest run path/to/your/test-file.test.ts
+```
+
+✅ Führt **nur diese eine Datei** aus  
+✅ Ideal für gezielte Test-Sessions ohne `test.only`  
+✅ Funktioniert auch mit Globs:
+
+```bash
+npx vitest run "tests/unit/**/*.test.ts"
+```
+
+---
+
+### 🎯 Test nach Name filtern
+
+```bash
+npx vitest run -t "spezifischer Testname"
+```
+
+Oder mit Regex:
+
+```bash
+npx vitest run -t "/RegEx.*Pattern/"
+```
+
+✅ Führt **nur Tests aus**, deren Name exakt oder per Regex matcht  
+✅ Kombinierbar mit Datei:
+
+```bash
+npx vitest run path/to/file.test.ts -t "spezifischer Test"
+```
+
+---
+
+### 🔍 Tests per CLI nur bestimmte Suiten laufen lassen
+
+Mit `--include`:
+
+```bash
+npx vitest run --include src/components/Button/*.test.ts
+```
+
+Oder mehrere:
+
+```bash
+npx vitest run --include "tests/unit/**/*.test.ts" "tests/integration/**/*.test.ts"
+```
+
+---
+
+### ⏳ Timeout setzen
+
+```bash
+npx vitest run --testTimeout=30000
+```
+
+Setzt Timeout für alle Tests auf 30 Sekunden – kein Warten auf Zombies 🧟‍♂️
+
+---
+
+### 🧪 Typechecking + Coverage in einem Rutsch
+
+```bash
+npx vitest run --typecheck --coverage
+```
+
+✅ Type Safety  
+✅ Test Coverage  
+✅ Kein Debug-Modus, einfach durchlaufen lassen
+
+---
+
+### ⚡ Mehr Speed (ohne Threads = sequentiell)
+
+```bash
+npx vitest run --threads=false
+```
+
+Perfekt für flaky Tests, race conditions, oder wenn du CI/CD-Ticks debuggen willst (aber ohne richtigen Debugger).
+
+---
+
+### 🧠 Pro-Tipp: Custom Scripts
+
+```json
+"scripts": {
+  "test:file": "vitest run path/to/file.test.ts",
+  "test:unit": "vitest run tests/unit",
+  "test:name": "vitest run -t 'mein testname'"
+}
+```
+
+Dann einfach:
+
+```bash
+npm run test:file
+```
+
+oder via VS Code „Debug Script“.
+
+---
+
+### 🔚 TL;DR
+
+| Use Case                     | Befehl                                                                 |
+|-----------------------------|------------------------------------------------------------------------|
+| Einzeldatei                 | `vitest run path/to/file.test.ts`                                      |
+| Test nach Name              | `vitest run -t "testname"`                                             |
+| Datei + Testname kombinieren | `vitest run path/to/file -t "testname"`                                |
+| Typecheck + Coverage        | `vitest run --typecheck --coverage`                                   |
+| Ohne Parallelisierung       | `vitest run --threads=false`                                          |
+
+---
+
+💥 Damit testest du gezielt, präzise und ohne `.only` – wie ein Scharfschütze im Test-Dschungel 🥷
+
+</details>
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<br><br>
+---
+<br><br>
+
+
+# Debugging
+
+
+<details><summary>Click to expand..</summary>
+
+
+
 ## .only
 
 <details><summary>Click to expand..</summary>
@@ -217,3 +389,8 @@ Debugging in Node ist kein Hexenwerk, aber VS Code muss **explizit wissen**, das
 ---
 
 Willst du eine `launch.json` mit verschiedenen Targets (Einzeltest, Pattern, Datei)? Ich bau dir die wie ein Maschinengewehr mit verschiedenen Feuermodi.
+
+
+
+</details>
+

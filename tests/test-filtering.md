@@ -5,6 +5,27 @@ Vitest bietet verschiedene Möglichkeiten, Tests zu filtern und nur bestimmte Te
 Offizielle Dokumentation: [https://vitest.dev/guide/filtering.html](https://vitest.dev/guide/filtering.html)
 
 
+<br><br>
+
+
+# 🔍 Coverage
+
+<details><summary>Click to expand...</summary>
+
+
+# Run specific test and only coverage for this test
+```shell
+npx vitest run src/main/services/abbreviation.test.ts --coverage --coverage.include="src/main/abbreviation.ts"
+```
+
+</details>
+
+
+
+
+
+<br><br>
+
 
 
 

@@ -15,7 +15,7 @@ Offizielle Dokumentation: [https://vitest.dev/guide/filtering.html](https://vite
 
 # Run specific test and only coverage for this test
 ```shell
-npx vitest run src/main/services/abbreviation.test.ts --coverage --coverage.include="src/main/abbreviation.ts"
+npx vitest run test/unit/services/evident/EvidentService/abbreviation.test.ts --coverage --coverage.include="src/main/services/evident/EvidentService/abbreviation.ts"
 ```
 
 </details>

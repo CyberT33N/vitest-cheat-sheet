@@ -10,7 +10,10 @@ Um die automatische Unterdrückung der Konsolenausgabe zu deaktivieren, kann der
 --disable-console-intercept
 ```
 
-Dies erlaubt die Anzeige von Ausgaben über `console.log` während der Testausführung.
+Dies erlaubt die Anzeige von Ausgaben über `console.log` während der Testausführung. Funktioniert aber nicht mit console.info(). Alternativ kann man probieren `window.console.log()`
+
+
+
 
 ## Disable watch
 

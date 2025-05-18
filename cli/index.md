@@ -12,6 +12,15 @@ Um die automatische Unterdrückung der Konsolenausgabe zu deaktivieren, kann der
 
 Dies erlaubt die Anzeige von Ausgaben über `console.log` während der Testausführung. Funktioniert aber nicht mit console.info(). Alternativ kann man probieren `window.console.log()`
 
+- https://github.com/vitest-dev/vscode/discussions/117
+```
+for me it did also not work until I changed npm test --disable-console-intercept to npm test -- --disable-console-intercept
+```
+
+
+
+<br><br>
+
 
 
 

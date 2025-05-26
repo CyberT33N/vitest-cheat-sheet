@@ -27,4 +27,5 @@ Eine umfassende Sammlung von Tipps, Konfigurationen und Best Practices für die 
    - [Testing Types](./api/testing-types.md)
    - [VI Utility](./api/vi-utility.md)
    - [expectTypeOf](./api/expect-type-of.md)
-   - [expect](./api/expect.md) 
+   - [expect](./api/expect.md)
+   - [Mocking Functions and Objects](./api/mock.md)

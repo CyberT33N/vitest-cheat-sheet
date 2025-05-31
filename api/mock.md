@@ -1,4 +1,4 @@
-# Mockinmg
+# Mocking
 
 ## Modules
 
@@ -9,7 +9,7 @@
 <details><summary>Click to expand..</summary>
 
 
-Option 2 - importActual():
+Option 1 - importActual():
 
 
 <details><summary>Click to expand..</summary>
@@ -57,7 +57,7 @@ vi.mock('@pinecone-database/pinecone', async() => {
 <br><br>
 <br><br>
 
-Option 3 - importOriginal():
+Option 2 - importOriginal():
 
 
 <details><summary>Click to expand..</summary>

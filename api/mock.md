@@ -8,254 +8,97 @@
 
 <details><summary>Click to expand..</summary>
 
+### ❌ Problem: `importMock()` Inside `vi.mock()` = 💥 Infinite Recursion
 
-Option 1 - importActual():
+Calling `importMock()` **inside** a `vi.mock()` block is a trap:
+It tries to load the very module you're currently mocking → triggers `vi.mock()` again → **infinite loop** → boom.
 
+---
 
-<details><summary>Click to expand..</summary>
+### ✅ Correct Approach: Use `importOriginal`
 
+Never use `importMock()` inside `vi.mock()`.
+Instead, Vitest provides `importOriginal` exactly for this purpose:
+
+```ts
+vi.mock('some-module', async (importOriginal) => {
+  const original = await importOriginal<typeof import('some-module')>()
+  const { mockObject } = await import('vitest/mocker')
+  return mockObject({ type: 'automock', spyOn: vi.spyOn }, original)
+})
 ```
+
+---
+
+### ✅ Clean Solution: Mock Factory Pattern
+
+Here’s a robust and reusable pattern using a hoisted mock factory. Example: mocking the `@pinecone-database/pinecone` module.
+
+```ts
 import { describe, it, expect, vi, beforeEach, type MockedObject } from 'vitest'
 import { mockObject } from 'vitest/mocker'
 
-// Type für das gesamte Pinecone-Modul
 type PineconeModule = typeof import('@pinecone-database/pinecone')
-// Type für eine gemockte Version des Pinecone-Moduls
 type MockedPineconeModule = MockedObject<PineconeModule>
 
-// ==== Mocks ====
 const mockFactory = vi.hoisted(() => {
-    let mockedPineconeModule: MockedPineconeModule
-    
-    // Functional approach: Factory function instead of setter
-    const createAndStoreMockedModule = async(): Promise<MockedPineconeModule> => {
-        const original = await vi.importActual<PineconeModule>('@pinecone-database/pinecone')
-        const module = mockObject(
-            {
-                type: 'automock',
-                spyOn: vi.spyOn,
-                globalConstructors: {
-                    Object,
-                    Function,
-                    RegExp,
-                    Array,
-                    Map
-                }
-            },
-            original
-        ) as MockedPineconeModule
-        
-        mockedPineconeModule = module
-        return module
-    }
-    
-    return {
-        getMockedPineconeModule: (): MockedPineconeModule => mockedPineconeModule,
-        createAndStoreMockedModule
-    }
-})
+  let mockedModule: MockedPineconeModule
 
-vi.mock('@pinecone-database/pinecone', async(): Promise<MockedPineconeModule> => {
-    const module = await mockFactory.createAndStoreMockedModule()
+  const createAndStoreMockedModule = async (): Promise<MockedPineconeModule> => {
+    const original = await vi.importActual<PineconeModule>('@pinecone-database/pinecone')
+    const module = mockObject(
+      {
+        type: 'automock',
+        spyOn: vi.spyOn,
+        globalConstructors: { Object, Function, RegExp, Array, Map }
+      },
+      original
+    ) as MockedPineconeModule
+
+    mockedModule = module
     return module
+  }
+
+  return {
+    getMockedPineconeModule: (): MockedPineconeModule => mockedModule,
+    createAndStoreMockedModule
+  }
 })
 
-
-// ==== Tests ====
-describe('PineconeService', () => {
-    let service: PineconeService
-    let mockedPinecone: MockedPineconeModule
-
-    const namespace = env.PINECONE_RULES_NAMESPACE
-    const apiKey = env.PINECONE_API_KEY
-
-    beforeEach(() => {
-        mockedPinecone = mockFactory.getMockedPineconeModule()
-        service = createStandardPineconeService()
-    })
-
-    describe('✅ Constructor', () => {
-        it('sollte korrekt mit Standard-API-Key und Namespace initialisieren', () => {
-            expect(mockedPinecone.Pinecone).toHaveBeenCalledWith({ apiKey })
-            expect(Reflect.get(service, '_namespace')).toBe(namespace)
-        })
-    })
-})
-```
-
-  
-</details>
-
-
-
-<br><br>
-<br><br>
-
-Option 2 - importOriginal():
-
-
-<details><summary>Click to expand..</summary>
-
-```
-// ==== Mocks ====
-const hoistedMocks = vi.hoisted(() => {
-    let mockedPineconeModule: IMockedPineconeModule | null = null
-    
-    return {
-        getMockedPineconeModule: (): IMockedPineconeModule | null => mockedPineconeModule,
-        setMockedPineconeModule: (module: ReadonlyDeep<IMockedPineconeModule>): void => {
-            mockedPineconeModule = module as IMockedPineconeModule
-        }
-    }
-})
-
-vi.mock('@pinecone-database/pinecone', async importOriginal => {
-    const original = await importOriginal<typeof import('@pinecone-database/pinecone')>()
-    const { mockObject } = await import('vitest/mocker')
-    
-    // Use mockObject to automatically mock the entire module
-    const mocked = mockObject(
-        {
-            type: 'automock',
-            spyOn: vi.spyOn,
-            globalConstructors: {
-                Object,
-                Function,
-                RegExp,
-                Array,
-                Map
-            }
-        },
-        original
-    )
-    
-    const mockedModule: IMockedPineconeModule = {
-        ...mocked,
-        Pinecone: mocked.Pinecone as ReturnType<typeof vi.fn>,
-        Index: mocked.Index as ReturnType<typeof vi.fn>
-    }
-    
-    // Store the mocked module in hoisted variable for test access
-    hoistedMocks.setMockedPineconeModule(mockedModule)
-    
-    return mockedModule
-})
-
-// ==== Tests ====
-describe('PineconeService', () => {
-    let service: PineconeService
-    let mockedPinecone: IMockedPineconeModule
-
-    const namespace = env.PINECONE_RULES_NAMESPACE
-    const apiKey = env.PINECONE_API_KEY
-
-    beforeEach(() => {
-        // Get the mocked module
-        const module = hoistedMocks.getMockedPineconeModule()
-        if (!module) {
-            throw new Error('Mocked Pinecone module not available')
-        }
-        mockedPinecone = module
-        service = createStandardPineconeService()
-    })
-
-    describe('✅ Constructor', () => {
-        it.only('sollte korrekt mit Standard-API-Key und Namespace initialisieren', () => {
-            expect(mockedPinecone.Pinecone).toHaveBeenCalledWith({ apiKey })
-            expect(Reflect.get(service, '_namespace')).toBe(namespace)
-        })
-    })
-})
-```
-
-</details>
-
-
-
-
-<br><br>
-<br><br>
-
-Not working - importMock()
-
-<details><summary>Click to expand..</summary>
-
-Exakt. Du hast den Haken erkannt, den viele übersehen:
-👉 **`importMock()` innerhalb von `vi.mock()` für genau dasselbe Modul** ist ein verdammter 🌀 **Rekursions-Todeskreis**.
-
----
-
-## 🔥 Warum passiert das?
-
-```ts
 vi.mock('@pinecone-database/pinecone', async () => {
-  const { importMock } = await import('vitest/mocker')
-  const mocked = await importMock('@pinecone-database/pinecone') // 💀
+  return mockFactory.createAndStoreMockedModule()
 })
 ```
 
-Sobald `importMock('@pinecone-database/pinecone')` aufgerufen wird,
-versucht **Vitest**, das **gemockte** Modul zu importieren…
-…aber **du bist ja gerade dabei**, es zu mocken.
-👉 Zack. Infinite Loop. 🌀💥
-
----
-
-## 🧠 Lösung: **`importOriginal` verwenden – nicht `importMock`**
-
-Wenn du dich **innerhalb von `vi.mock()` befindest**, dann nimm immer:
+And then in your tests:
 
 ```ts
-vi.mock('@pinecone-database/pinecone', async (importOriginal) => {
-  const original = await importOriginal<typeof import('@pinecone-database/pinecone')>()
-  const { mockObject } = await import('vitest/mocker')
+describe('PineconeService', () => {
+  let service: PineconeService
+  let mockedPinecone: MockedPineconeModule
 
-  const mocked = mockObject(
-    { type: 'automock', spyOn: vi.spyOn },
-    original
-  )
+  beforeEach(() => {
+    mockedPinecone = mockFactory.getMockedPineconeModule()
+    service = createStandardPineconeService()
+  })
 
-  return mocked
+  it('✅ should initialize with correct API key and namespace', () => {
+    expect(mockedPinecone.Pinecone).toHaveBeenCalledWith({ apiKey: env.PINECONE_API_KEY })
+    expect(Reflect.get(service, '_namespace')).toBe(env.PINECONE_RULES_NAMESPACE)
+  })
 })
 ```
 
-✅ Damit umgehst du den rekursiven Import, weil `importOriginal` speziell von Vitest bereitgestellt wird, um **das Originalmodul** zu importieren – **nicht das bereits gemockte.**
-
 ---
 
-## 🧪 Wann kannst du `importMock()` **sicher** verwenden?
+### 🧠 Recap
 
-Nur **außerhalb von `vi.mock()`**, z. B. in deinem Testcode selbst:
-
-```ts
-import { importMock } from 'vitest/mocker'
-
-test('something', async () => {
-  const pinecone = await importMock('@pinecone-database/pinecone')
-  // Test mit gemocktem Modul
-})
-```
-
-Oder innerhalb eines **anderen Moduls**, das nicht am selben Mock beteiligt ist.
-
----
-
-## ✅ Empfehlung
-
-Wenn du innerhalb von `vi.mock()` bist:
-
-* ❌ **Kein `importMock()` verwenden**
-* ✅ Nutze `importOriginal` + `mockObject`
-
-Wenn du das Modul **extern mocken** willst (z. B. für Helper oder generische Testmocks), dann:
-
-* ✅ `importMock()` verwenden – aber **nie** aus dem gleichen Modulkontext.
-
-
-</details>
-
-
-
+| Action                                | Context             | Status           |
+| ------------------------------------- | ------------------- | ---------------- |
+| ❌ `importMock()`                      | Inside `vi.mock()`  | ❌ Never          |
+| ✅ `importOriginal()` + `mockObject()` | Inside `vi.mock()`  | ✅ Correct        |
+| ✅ `importMock()`                      | Outside `vi.mock()` | ✅ Safe           |
+| ✅ Use mock factory wrapper            | Anywhere            | 💪 Best practice |
 
 </details>
 

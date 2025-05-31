@@ -191,6 +191,7 @@ oder via VS Code „Debug Script“.
 
 
 # Debugging
+- **Am einfachsten ist es, die **Vitest** VSCode-Extension zu benutzen. Dort kannst du dann einfach Tests einzeln starten, indem du z.B. mit der rechten Maustaste auf den Play-Button drückst und dann **Debug-Test** klickst. Wenn du die VSCode-Extension nicht benutzen **WILLST**, hast du nur die folgenden **MÖGLICHKEITEN** unten.**
 
 
 <details><summary>Click to expand..</summary>
@@ -263,11 +264,6 @@ if ($onlyFiles.Count -gt 0) {
 
 
 
-
-
-
----
-Exakt, du hast’s durchschaut wie Sherlock nach drei Espresso ☕🔍
 
 ---
 

@@ -15,40 +15,74 @@ Option 1 - importActual():
 <details><summary>Click to expand..</summary>
 
 ```
+import { describe, it, expect, vi, beforeEach, type MockedObject } from 'vitest'
+import { mockObject } from 'vitest/mocker'
 
-vi.mock('@pinecone-database/pinecone', async() => {
-    const original = await vi.importActual<typeof import('@pinecone-database/pinecone')>('@pinecone-database/pinecone')
-    const { mockObject } = await import('vitest/mocker')
+// Type für das gesamte Pinecone-Modul
+type PineconeModule = typeof import('@pinecone-database/pinecone')
+// Type für eine gemockte Version des Pinecone-Moduls
+type MockedPineconeModule = MockedObject<PineconeModule>
+
+// ==== Mocks ====
+const mockFactory = vi.hoisted(() => {
+    let mockedPineconeModule: MockedPineconeModule
     
-    // Use mockObject to automatically mock the entire module
-    const mocked = mockObject(
-        {
-            type: 'automock',
-            spyOn: vi.spyOn,
-            globalConstructors: {
-                Object,
-                Function,
-                RegExp,
-                Array,
-                Map
-            }
-        },
-        original
-    )
-    
-    const mockedModule: IMockedPineconeModule = {
-        ...mocked,
-        Pinecone: mocked.Pinecone as ReturnType<typeof vi.fn>,
-        Index: mocked.Index as ReturnType<typeof vi.fn>
+    // Functional approach: Factory function instead of setter
+    const createAndStoreMockedModule = async(): Promise<MockedPineconeModule> => {
+        const original = await vi.importActual<PineconeModule>('@pinecone-database/pinecone')
+        const module = mockObject(
+            {
+                type: 'automock',
+                spyOn: vi.spyOn,
+                globalConstructors: {
+                    Object,
+                    Function,
+                    RegExp,
+                    Array,
+                    Map
+                }
+            },
+            original
+        ) as MockedPineconeModule
+        
+        mockedPineconeModule = module
+        return module
     }
     
-    // Store the mocked module in hoisted variable for test access
-    hoistedMocks.setMockedPineconeModule(mockedModule)
-    
-    return mockedModule
+    return {
+        getMockedPineconeModule: (): MockedPineconeModule => mockedPineconeModule,
+        createAndStoreMockedModule
+    }
+})
+
+vi.mock('@pinecone-database/pinecone', async(): Promise<MockedPineconeModule> => {
+    const module = await mockFactory.createAndStoreMockedModule()
+    return module
+})
+
+
+// ==== Tests ====
+describe('PineconeService', () => {
+    let service: PineconeService
+    let mockedPinecone: MockedPineconeModule
+
+    const namespace = env.PINECONE_RULES_NAMESPACE
+    const apiKey = env.PINECONE_API_KEY
+
+    beforeEach(() => {
+        mockedPinecone = mockFactory.getMockedPineconeModule()
+        service = createStandardPineconeService()
+    })
+
+    describe('✅ Constructor', () => {
+        it('sollte korrekt mit Standard-API-Key und Namespace initialisieren', () => {
+            expect(mockedPinecone.Pinecone).toHaveBeenCalledWith({ apiKey })
+            expect(Reflect.get(service, '_namespace')).toBe(namespace)
+        })
+    })
 })
 ```
-- Full logic as in Option 3
+
   
 </details>
 

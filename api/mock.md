@@ -8,6 +8,10 @@
 
 
 Option 2 - importActual():
+
+
+<details><summary>Click to expand..</summary>
+
 ```
 
 vi.mock('@pinecone-database/pinecone', async() => {
@@ -43,7 +47,8 @@ vi.mock('@pinecone-database/pinecone', async() => {
 })
 ```
 - Full logic as in Option 3
-
+  
+</details>
 
 
 
@@ -51,6 +56,10 @@ vi.mock('@pinecone-database/pinecone', async() => {
 <br><br>
 
 Option 3 - importOriginal():
+
+
+<details><summary>Click to expand..</summary>
+
 ```
 // ==== Mocks ====
 const hoistedMocks = vi.hoisted(() => {
@@ -123,6 +132,7 @@ describe('PineconeService', () => {
 })
 ```
 
+</details>
 
 </details>
 

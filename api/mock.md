@@ -1,3 +1,154 @@
+
+
+# Modules
+
+## External NPM Packages
+
+<details><summary>Click to expand..</summary>
+
+
+Option 2 - importActual():
+```
+
+vi.mock('@pinecone-database/pinecone', async() => {
+    const original = await vi.importActual<typeof import('@pinecone-database/pinecone')>('@pinecone-database/pinecone')
+    const { mockObject } = await import('vitest/mocker')
+    
+    // Use mockObject to automatically mock the entire module
+    const mocked = mockObject(
+        {
+            type: 'automock',
+            spyOn: vi.spyOn,
+            globalConstructors: {
+                Object,
+                Function,
+                RegExp,
+                Array,
+                Map
+            }
+        },
+        original
+    )
+    
+    const mockedModule: IMockedPineconeModule = {
+        ...mocked,
+        Pinecone: mocked.Pinecone as ReturnType<typeof vi.fn>,
+        Index: mocked.Index as ReturnType<typeof vi.fn>
+    }
+    
+    // Store the mocked module in hoisted variable for test access
+    hoistedMocks.setMockedPineconeModule(mockedModule)
+    
+    return mockedModule
+})
+```
+- Full logic as in Option 3
+
+
+
+
+<br><br>
+<br><br>
+
+Option 3 - importOriginal():
+```
+// ==== Mocks ====
+const hoistedMocks = vi.hoisted(() => {
+    let mockedPineconeModule: IMockedPineconeModule | null = null
+    
+    return {
+        getMockedPineconeModule: (): IMockedPineconeModule | null => mockedPineconeModule,
+        setMockedPineconeModule: (module: ReadonlyDeep<IMockedPineconeModule>): void => {
+            mockedPineconeModule = module as IMockedPineconeModule
+        }
+    }
+})
+
+vi.mock('@pinecone-database/pinecone', async importOriginal => {
+    const original = await importOriginal<typeof import('@pinecone-database/pinecone')>()
+    const { mockObject } = await import('vitest/mocker')
+    
+    // Use mockObject to automatically mock the entire module
+    const mocked = mockObject(
+        {
+            type: 'automock',
+            spyOn: vi.spyOn,
+            globalConstructors: {
+                Object,
+                Function,
+                RegExp,
+                Array,
+                Map
+            }
+        },
+        original
+    )
+    
+    const mockedModule: IMockedPineconeModule = {
+        ...mocked,
+        Pinecone: mocked.Pinecone as ReturnType<typeof vi.fn>,
+        Index: mocked.Index as ReturnType<typeof vi.fn>
+    }
+    
+    // Store the mocked module in hoisted variable for test access
+    hoistedMocks.setMockedPineconeModule(mockedModule)
+    
+    return mockedModule
+})
+
+// ==== Tests ====
+describe('PineconeService', () => {
+    let service: PineconeService
+    let mockedPinecone: IMockedPineconeModule
+
+    const namespace = env.PINECONE_RULES_NAMESPACE
+    const apiKey = env.PINECONE_API_KEY
+
+    beforeEach(() => {
+        // Get the mocked module
+        const module = hoistedMocks.getMockedPineconeModule()
+        if (!module) {
+            throw new Error('Mocked Pinecone module not available')
+        }
+        mockedPinecone = module
+        service = createStandardPineconeService()
+    })
+
+    describe('✅ Constructor', () => {
+        it.only('sollte korrekt mit Standard-API-Key und Namespace initialisieren', () => {
+            expect(mockedPinecone.Pinecone).toHaveBeenCalledWith({ apiKey })
+            expect(Reflect.get(service, '_namespace')).toBe(namespace)
+        })
+    })
+})
+```
+
+
+</details>
+
+
+
+
+
+
+
+
+
+
+
+
+<br><br>
+________
+________
+<br><br>
+
+
+
+
+
+
+
+
 # Class
 
 ## Method
@@ -37,6 +188,11 @@ describe('Patients', () => {
 
 
 
+
+
+
+
+
 <br><br>
 ________
 ________
@@ -45,7 +201,6 @@ ________
 
 
 <details><summary>Click to expand..</summary>
-</details>
 
 
 

@@ -136,6 +136,93 @@ describe('PineconeService', () => {
 
 </details>
 
+
+
+
+<br><br>
+<br><br>
+
+Not working - importMock()
+
+<details><summary>Click to expand..</summary>
+
+Exakt. Du hast den Haken erkannt, den viele übersehen:
+👉 **`importMock()` innerhalb von `vi.mock()` für genau dasselbe Modul** ist ein verdammter 🌀 **Rekursions-Todeskreis**.
+
+---
+
+## 🔥 Warum passiert das?
+
+```ts
+vi.mock('@pinecone-database/pinecone', async () => {
+  const { importMock } = await import('vitest/mocker')
+  const mocked = await importMock('@pinecone-database/pinecone') // 💀
+})
+```
+
+Sobald `importMock('@pinecone-database/pinecone')` aufgerufen wird,
+versucht **Vitest**, das **gemockte** Modul zu importieren…
+…aber **du bist ja gerade dabei**, es zu mocken.
+👉 Zack. Infinite Loop. 🌀💥
+
+---
+
+## 🧠 Lösung: **`importOriginal` verwenden – nicht `importMock`**
+
+Wenn du dich **innerhalb von `vi.mock()` befindest**, dann nimm immer:
+
+```ts
+vi.mock('@pinecone-database/pinecone', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@pinecone-database/pinecone')>()
+  const { mockObject } = await import('vitest/mocker')
+
+  const mocked = mockObject(
+    { type: 'automock', spyOn: vi.spyOn },
+    original
+  )
+
+  return mocked
+})
+```
+
+✅ Damit umgehst du den rekursiven Import, weil `importOriginal` speziell von Vitest bereitgestellt wird, um **das Originalmodul** zu importieren – **nicht das bereits gemockte.**
+
+---
+
+## 🧪 Wann kannst du `importMock()` **sicher** verwenden?
+
+Nur **außerhalb von `vi.mock()`**, z. B. in deinem Testcode selbst:
+
+```ts
+import { importMock } from 'vitest/mocker'
+
+test('something', async () => {
+  const pinecone = await importMock('@pinecone-database/pinecone')
+  // Test mit gemocktem Modul
+})
+```
+
+Oder innerhalb eines **anderen Moduls**, das nicht am selben Mock beteiligt ist.
+
+---
+
+## ✅ Empfehlung
+
+Wenn du innerhalb von `vi.mock()` bist:
+
+* ❌ **Kein `importMock()` verwenden**
+* ✅ Nutze `importOriginal` + `mockObject`
+
+Wenn du das Modul **extern mocken** willst (z. B. für Helper oder generische Testmocks), dann:
+
+* ✅ `importMock()` verwenden – aber **nie** aus dem gleichen Modulkontext.
+
+
+</details>
+
+
+
+
 </details>
 
 

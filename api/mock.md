@@ -1,5 +1,13 @@
 # Mocking
 
+
+# vitest/mocker
+- https://github.com/vitest-dev/vitest/blob/main/packages/mocker/EXPORTS.md
+
+
+<br><br>
+
+
 ## Modules
 
 ### External NPM Packages

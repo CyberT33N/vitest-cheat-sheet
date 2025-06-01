@@ -1,6 +1,7 @@
 # Auto Mocking
 
 ## Classes
+- Die folgenden Beispiele sind kein vollständig vollständiges **Automocking**, da die neu erstellte **Klasseninstanz**, die in anderen Dateien erstellt wird, mit einem **Mock** überschrieben werden **MUSS**.
 
 <details><summary>Click to expand..</summary>
 
@@ -30,83 +31,10 @@ Beide Ansätze ermöglichen es dir, das Verhalten von Klasseninstanzen präzise 
 
 
 
-### Beispiel 1: `vi.mock` + `vi.mocked().mockImplementation()`
-
-```typescript
-// ==== Imports ====
-import { describe, it, expect, vi, beforeEach, type MockedFunction } from 'vitest';
-import { GoogleGenAI } from '@google/genai'; // Angenommen, dies ist der Original-Import
-import { GoogleEmbeddingService } from '@/services/embedding/google/embedding-service.ts'; // Dein Service
-import env from '@/env.js';
-
-// Dummy-Funktionen/Daten für das Beispiel
-const createStandardService = () => new GoogleEmbeddingService();
-const testConstructorDefaults = (service: any) => { /* ... */ };
-
-// ==== Mocks ====
-// 1. Mocke das gesamte Modul.
-// GoogleGenAI (wenn importiert) wird dadurch bereits zu einer Mock-Funktion.
-vi.mock('@google/genai');
-
-// 2. Überschreibe die Implementierung des (jetzt gemockten) GoogleGenAI-Konstruktors.
-// Diese Zeile muss NACH dem `vi.mock` und dem Import von `GoogleGenAI` stehen,
-// aber VOR `describe`-Blöcken oder `beforeEach`, wenn sie global gelten soll.
-// In der Regel direkt hier auf Top-Level der Testdatei.
-vi.mocked(GoogleGenAI).mockImplementation(() => {
-    // Diese Funktion wird jedes Mal ausgeführt, wenn `new GoogleGenAI()` aufgerufen wird.
-    // Sie gibt die Mock-Instanz zurück.
-    return {
-        models: {
-            embedContent: vi.fn().mockResolvedValue({ embeddings: [] }) // Beispiel-Mock für eine Instanzmethode
-        }
-    };
-});
-
-
-// ==== Tests ====
-describe('GoogleEmbeddingService() - Unit Tests with Mocks (vi.mocked().mockImplementation())', () => {
-    let service: GoogleEmbeddingService;
-    // Um auf die mockEmbedContent-Funktion der *letzten* Instanz zuzugreifen:
-    let lastMockInstanceEmbedContent: MockedFunction<any>;
-
-    beforeEach(async() => {
-        service = createStandardService(); // Ruft intern `new GoogleGenAI()` auf
-    });
-
-    describe('Constructor', () => {
-        it('sollte erfolgreich initialisiert werden mit default values', async() => {
-            testConstructorDefaults(service); // Führt Assertions auf dem Service-Objekt aus
-
-            // Überprüfe, ob der GoogleGenAI Konstruktor-Mock korrekt aufgerufen wurde
-            expect(GoogleGenAI).toHaveBeenCalledTimes(1); // Sicherstellen, dass er nur einmal im beforeEach aufgerufen wurde
-            expect(GoogleGenAI).toHaveBeenCalledWith(expect.objectContaining({
-                apiKey: env.GEMINI_API_KEY
-            }));
-        });
-    });
-});
-```
 
 
 
-
-
-
-
-
-
-<br><br>
-
-
----
-
-<br><br>
-
-
-
-
-
-### Beispiel 2: Hoisted Mock Factory mit `mockObject`
+### Beispiel 1: Hoisted Mock Factory mit `mockObject`
 
 Dieser Ansatz ist nützlich, um eine klare Struktur für das Mocking eines externen Moduls und seiner Klassen zu schaffen. Die Factory stellt sicher, dass die Mocks korrekt initialisiert werden, bevor der Testcode ausgeführt wird.
 
@@ -259,6 +187,79 @@ describe('GoogleEmbeddingService() - Unit Tests with Mocks (Hoisted Factory)', (
     })
     // ... Rest der Tests
 })
+```
+
+
+
+
+
+
+
+
+<br><br>
+
+
+---
+
+<br><br>
+
+
+
+### Beispiel 2: `vi.mock` + `vi.mocked().mockImplementation()`
+
+```typescript
+// ==== Imports ====
+import { describe, it, expect, vi, beforeEach, type MockedFunction } from 'vitest';
+import { GoogleGenAI } from '@google/genai'; // Angenommen, dies ist der Original-Import
+import { GoogleEmbeddingService } from '@/services/embedding/google/embedding-service.ts'; // Dein Service
+import env from '@/env.js';
+
+// Dummy-Funktionen/Daten für das Beispiel
+const createStandardService = () => new GoogleEmbeddingService();
+const testConstructorDefaults = (service: any) => { /* ... */ };
+
+// ==== Mocks ====
+// 1. Mocke das gesamte Modul.
+// GoogleGenAI (wenn importiert) wird dadurch bereits zu einer Mock-Funktion.
+vi.mock('@google/genai');
+
+// 2. Überschreibe die Implementierung des (jetzt gemockten) GoogleGenAI-Konstruktors.
+// Diese Zeile muss NACH dem `vi.mock` und dem Import von `GoogleGenAI` stehen,
+// aber VOR `describe`-Blöcken oder `beforeEach`, wenn sie global gelten soll.
+// In der Regel direkt hier auf Top-Level der Testdatei.
+vi.mocked(GoogleGenAI).mockImplementation(() => {
+    // Diese Funktion wird jedes Mal ausgeführt, wenn `new GoogleGenAI()` aufgerufen wird.
+    // Sie gibt die Mock-Instanz zurück.
+    return {
+        models: {
+            embedContent: vi.fn().mockResolvedValue({ embeddings: [] }) // Beispiel-Mock für eine Instanzmethode
+        }
+    };
+});
+
+
+// ==== Tests ====
+describe('GoogleEmbeddingService() - Unit Tests with Mocks (vi.mocked().mockImplementation())', () => {
+    let service: GoogleEmbeddingService;
+    // Um auf die mockEmbedContent-Funktion der *letzten* Instanz zuzugreifen:
+    let lastMockInstanceEmbedContent: MockedFunction<any>;
+
+    beforeEach(async() => {
+        service = createStandardService(); // Ruft intern `new GoogleGenAI()` auf
+    });
+
+    describe('Constructor', () => {
+        it('sollte erfolgreich initialisiert werden mit default values', async() => {
+            testConstructorDefaults(service); // Führt Assertions auf dem Service-Objekt aus
+
+            // Überprüfe, ob der GoogleGenAI Konstruktor-Mock korrekt aufgerufen wurde
+            expect(GoogleGenAI).toHaveBeenCalledTimes(1); // Sicherstellen, dass er nur einmal im beforeEach aufgerufen wurde
+            expect(GoogleGenAI).toHaveBeenCalledWith(expect.objectContaining({
+                apiKey: env.GEMINI_API_KEY
+            }));
+        });
+    });
+});
 ```
 
 

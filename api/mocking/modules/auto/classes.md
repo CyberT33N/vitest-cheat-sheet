@@ -223,19 +223,25 @@ const testConstructorDefaults = (service: any) => { /* ... */ };
 // GoogleGenAI (wenn importiert) wird dadurch bereits zu einer Mock-Funktion.
 vi.mock('@google/genai');
 
-// 2. Überschreibe die Implementierung des (jetzt gemockten) GoogleGenAI-Konstruktors.
-// Diese Zeile muss NACH dem `vi.mock` und dem Import von `GoogleGenAI` stehen,
-// aber VOR `describe`-Blöcken oder `beforeEach`, wenn sie global gelten soll.
-// In der Regel direkt hier auf Top-Level der Testdatei.
-vi.mocked(GoogleGenAI).mockImplementation(() => {
-    // Diese Funktion wird jedes Mal ausgeführt, wenn `new GoogleGenAI()` aufgerufen wird.
-    // Sie gibt die Mock-Instanz zurück.
+// 2. Erstelle eine Mock-Instanz mit den benötigten Methoden
+let mockEmbedContent: MockedFunction<(...args: readonly unknown[]) => Promise<unknown>>
+
+/ 3. Überschreibe die Implementierung des GoogleGenAI-Konstruktors
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+vi.mocked(GoogleGenAI).mockImplementation((): any => {
+    // Diese Funktion wird jedes Mal ausgeführt, wenn `new GoogleGenAI()` aufgerufen wird
+    mockEmbedContent = vi.fn().mockImplementation(() => {
+        return {
+            embeddings: [{ values: TEST_DATA.embedding1 }]
+        }
+    })
+    
     return {
         models: {
-            embedContent: vi.fn().mockResolvedValue({ embeddings: [] }) // Beispiel-Mock für eine Instanzmethode
+            embedContent: mockEmbedContent
         }
-    };
-});
+    }
+})
 
 
 // ==== Tests ====

@@ -28,9 +28,85 @@ Es gibt verschiedene Wege, dies zu erreichen. Hier sind zwei gängige Ansätze, 
 
 Beide Ansätze ermöglichen es dir, das Verhalten von Klasseninstanzen präzise für deine Unit-Tests zu steuern.
 
+
+
+### Beispiel 1: `vi.mock` + `vi.mocked().mockImplementation()`
+
+```typescript
+// ==== Imports ====
+import { describe, it, expect, vi, beforeEach, type MockedFunction } from 'vitest';
+import { GoogleGenAI } from '@google/genai'; // Angenommen, dies ist der Original-Import
+import { GoogleEmbeddingService } from '@/services/embedding/google/embedding-service.ts'; // Dein Service
+import env from '@/env.js';
+
+// Dummy-Funktionen/Daten für das Beispiel
+const createStandardService = () => new GoogleEmbeddingService();
+const testConstructorDefaults = (service: any) => { /* ... */ };
+
+// ==== Mocks ====
+// 1. Mocke das gesamte Modul.
+// GoogleGenAI (wenn importiert) wird dadurch bereits zu einer Mock-Funktion.
+vi.mock('@google/genai');
+
+// 2. Überschreibe die Implementierung des (jetzt gemockten) GoogleGenAI-Konstruktors.
+// Diese Zeile muss NACH dem `vi.mock` und dem Import von `GoogleGenAI` stehen,
+// aber VOR `describe`-Blöcken oder `beforeEach`, wenn sie global gelten soll.
+// In der Regel direkt hier auf Top-Level der Testdatei.
+vi.mocked(GoogleGenAI).mockImplementation(() => {
+    // Diese Funktion wird jedes Mal ausgeführt, wenn `new GoogleGenAI()` aufgerufen wird.
+    // Sie gibt die Mock-Instanz zurück.
+    return {
+        models: {
+            embedContent: vi.fn().mockResolvedValue({ embeddings: [] }) // Beispiel-Mock für eine Instanzmethode
+        }
+    };
+});
+
+
+// ==== Tests ====
+describe('GoogleEmbeddingService() - Unit Tests with Mocks (vi.mocked().mockImplementation())', () => {
+    let service: GoogleEmbeddingService;
+    // Um auf die mockEmbedContent-Funktion der *letzten* Instanz zuzugreifen:
+    let lastMockInstanceEmbedContent: MockedFunction<any>;
+
+    beforeEach(async() => {
+        service = createStandardService(); // Ruft intern `new GoogleGenAI()` auf
+    });
+
+    describe('Constructor', () => {
+        it('sollte erfolgreich initialisiert werden mit default values', async() => {
+            testConstructorDefaults(service); // Führt Assertions auf dem Service-Objekt aus
+
+            // Überprüfe, ob der GoogleGenAI Konstruktor-Mock korrekt aufgerufen wurde
+            expect(GoogleGenAI).toHaveBeenCalledTimes(1); // Sicherstellen, dass er nur einmal im beforeEach aufgerufen wurde
+            expect(GoogleGenAI).toHaveBeenCalledWith(expect.objectContaining({
+                apiKey: env.GEMINI_API_KEY
+            }));
+        });
+    });
+});
+```
+
+
+
+
+
+
+
+
+
+<br><br>
+
+
 ---
 
-### Beispiel 1: Hoisted Mock Factory mit `mockObject`
+<br><br>
+
+
+
+
+
+### Beispiel 2: Hoisted Mock Factory mit `mockObject`
 
 Dieser Ansatz ist nützlich, um eine klare Struktur für das Mocking eines externen Moduls und seiner Klassen zu schaffen. Die Factory stellt sicher, dass die Mocks korrekt initialisiert werden, bevor der Testcode ausgeführt wird.
 
@@ -185,9 +261,21 @@ describe('GoogleEmbeddingService() - Unit Tests with Mocks (Hoisted Factory)', (
 })
 ```
 
+
+
+
+
+
+
+
+
+<br><br>
+
 ---
 
-### Beispiel 2: Direkter Modul-Mock mit `vi.fn().mockImplementation()` für die Klasse
+<br><br>
+
+### Beispiel 3: Direkter Modul-Mock mit `vi.fn().mockImplementation()` für die Klasse
 
 Dieser Ansatz ist oft kompakter. Der `vi.mock`-Callback gibt direkt ein Objekt zurück, das die exportierte Klasse als `vi.fn()` enthält, deren `mockImplementation` eine simulierte Instanz mit gemockten Methoden zurückgibt.
 

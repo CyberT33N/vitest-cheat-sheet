@@ -4,6 +4,13 @@
 # Class
 
 ## Method
+
+### Public
+
+<details><summary>Click to expand..</summary>
+
+Option1 - `ClassName.prototype` :
+
 ```typescript
 describe('Patients', () => {
     let patientServiceSpy: MockInstance<PatientService['getPatients']>
@@ -34,6 +41,61 @@ describe('Patients', () => {
     })
 })
 ```
+
+</details>
+
+
+<br><br>
+<br><br>
+
+
+### Privat
+
+<details><summary>Click to expand..</summary>
+
+Option1 - `as keyof` :
+
+```typescript
+import { describe, it, expect, vi, beforeEach, type MockedObject, type MockedFunction, MockInstance } from 'vitest'
+
+describe('getOrCreateIndex()', () => {
+    describe('✅ Positive Tests', () => {
+        let createIndexAndWaitSpy: MockInstance
+
+        const mockIndexModel: IndexModel = {
+            name: TEST_DATA.indexName,
+            dimension: TEST_DATA.dimension,
+            metric: 'cosine',
+            host: 'test-host',
+            spec: { serverless: { cloud: TEST_DATA.cloudProvider, region: TEST_DATA.region } },
+            status: { ready: true, state: 'Ready' },
+            vectorType: 'float'
+        }
+
+        beforeEach(() => {
+            createIndexAndWaitSpy = vi.spyOn(service, '_createIndexAndWait' as keyof PineconeService)
+                .mockResolvedValue(mockIndexInstance)
+        })
+
+        // eslint-disable-next-line max-len
+        it.only('sollte _createIndexAndWait aufrufen, wenn _describeIndex fehlschlägt (Index nicht vorhanden)', async() => {
+            mockPineconeInstance.describeIndex
+                .mockRejectedValueOnce(new Error('Index not found'))
+                .mockResolvedValueOnce(mockIndexModel)
+
+            const indexOptions = createTestIndexOptions()
+            const result = await service.getOrCreateIndex(indexOptions)
+
+            expect(createIndexAndWaitSpy).toHaveBeenCalledWith(indexOptions)
+            expect(createIndexAndWaitSpy).toHaveBeenCalledTimes(1)
+            expect(result).toBeDefined()
+        })
+    })
+})
+```
+
+</details>
+
 
 
 

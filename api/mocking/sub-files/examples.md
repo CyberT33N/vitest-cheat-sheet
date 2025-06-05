@@ -1,3 +1,5 @@
+*   **MUST:** Wenn mit **Sub-Regeln** gearbeitet wird, die als **Funktion** exportiert und in der **Haupttestdatei** importiert werden, dürfen die **Sub-Testdateien** **NIEMALS** mit dem Präfix **test.ts** benannt werden, weil sie sonst als **Test-Suite** erkannt werden und dann nicht geladen werden können.
+
 # Option 1 - vi.hoisted() mit externer Mock-Datei (Preferred)
 
 ## 🎯 Überblick der Architektur
@@ -15,9 +17,9 @@ test/
 ├── unit/main/services/
 │   ├── ServiceName.test.ts               # 🏠 HAUPTTESTDATEI
 │   └── ServiceName-modules/              # 📁 MODULARE TESTDATEIEN
-│       ├── feature1.test.ts
-│       ├── feature2.test.ts
-│       └── feature3.test.ts
+│       ├── feature1.ts
+│       ├── feature2.ts
+│       └── feature3.ts
 ```
 
 ---
@@ -102,9 +104,9 @@ import { describe } from 'vitest'
 import '@test/utils/mocks/ServiceName/ServiceName.ts'
 
 // Import modularized test functions
-import { runFeature1Tests } from './ServiceName-modules/feature1.test.ts'
-import { runFeature2Tests } from './ServiceName-modules/feature2.test.ts'
-import { runFeature3Tests } from './ServiceName-modules/feature3.test.ts'
+import { runFeature1Tests } from './ServiceName-modules/feature1.ts'
+import { runFeature2Tests } from './ServiceName-modules/feature2.ts'
+import { runFeature3Tests } from './ServiceName-modules/feature3.ts'
 
 describe('[ServiceName.ts] - src/main/services/ServiceName.ts', () => {
     describe('handleMessages()', () => {
@@ -127,7 +129,7 @@ import { serviceMocks } from '@test/utils/mocks/ServiceName/ServiceName.ts'
 
 ---
 
-## 📁 3. Modulare Testdatei (`test/unit/main/services/ServiceName-modules/feature1.test.ts`)
+## 📁 3. Modulare Testdatei (`test/unit/main/services/ServiceName-modules/feature1.ts`)
 
 ```typescript
 // ==== DEPENDENCIES ====
@@ -262,10 +264,10 @@ import { describe, vi } from 'vitest'
 import { ElectronMessage, ElectronMessageType } from '@main/models/ElectronMessage.ts'
 
 // Import modularized test functions (alphabetically sorted)
-import { runAppointmentsTests } from './MessageHandlerService-modules/appointments.test.ts'
-import { runConfigurationsTests } from './MessageHandlerService-modules/configurations.test.ts'
-import { runCustomerFindingsTests } from './MessageHandlerService-modules/customer-findings.test.ts'
-import { runPatientsTests } from './MessageHandlerService-modules/patients.test.ts'
+import { runAppointmentsTests } from './MessageHandlerService-modules/appointments.ts'
+import { runConfigurationsTests } from './MessageHandlerService-modules/configurations.ts'
+import { runCustomerFindingsTests } from './MessageHandlerService-modules/customer-findings.ts'
+import { runPatientsTests } from './MessageHandlerService-modules/patients.ts'
 // ... weitere Imports
 
 // ==== GLOBAL HANDLER MOCKS ====
@@ -297,7 +299,7 @@ describe('[MessageHandlerService.ts] - src/main/services/MessageHandlerService.t
 
 ---
 
-## 📄 Beispiel Sub-Modul: `patients.test.ts`
+## 📄 Beispiel Sub-Modul: `patients.ts`
 
 ```typescript
 // ==== DEPENDENCIES ====
@@ -386,7 +388,7 @@ vi.mocked(handlerName.functionName).mockRejectedValueOnce(new Error('Test Error'
 
 ### **Datei-Naming:**
 - Hauptdatei: `MessageHandlerService.test.ts`
-- Sub-Module: `MessageHandlerService-modules/{category}.test.ts`
+- Sub-Module: `MessageHandlerService-modules/{category}.ts`
 - Export-Funktion: `run{Category}Tests()`
 
 ---
@@ -439,7 +441,7 @@ Dieses Refactoring implementiert eine **zentrale Mock-Factory** für MessageHand
 📁 test/unit/main/services/
   ├── MessageHandlerService.test.ts    # Haupttest mit vi.hoisted() 
   └── MessageHandlerService-modules/
-      └── appointments.test.ts         # Modularisierte Tests
+      └── appointments.ts         # Modularisierte Tests
 ```
 
 ---
@@ -536,7 +538,7 @@ import { ElectronMessage, ElectronMessageType } from '@main/models/ElectronMessa
 import { MessageHandlerMockFactory } from '../../../utils/mocks/MessageHandlerMockFactory.ts'
 
 // Import modularized test functions
-import { runAppointmentsTests } from './MessageHandlerService-modules/appointments.test.ts'
+import { runAppointmentsTests } from './MessageHandlerService-modules/appointments.ts'
 // ... weitere Test-Importe
 
 // ==== HOISTED MOCKS ====
@@ -589,7 +591,7 @@ describe('[MessageHandlerService.ts] - src/main/services/MessageHandlerService.t
 export { mockFactory }
 ```
 
-### 3. Modularisierte Tests (`test/unit/main/services/MessageHandlerService-modules/appointments.test.ts`)
+### 3. Modularisierte Tests (`test/unit/main/services/MessageHandlerService-modules/appointments.ts`)
 
 ```typescript
 // ==== DEPENDENCIES ====

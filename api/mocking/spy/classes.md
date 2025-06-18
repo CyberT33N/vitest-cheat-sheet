@@ -45,6 +45,17 @@ describe('Patients', () => {
 </details>
 
 
+
+
+
+
+
+
+
+
+
+
+
 <br><br>
 <br><br>
 
@@ -90,6 +101,33 @@ describe('getOrCreateIndex()', () => {
             expect(createIndexAndWaitSpy).toHaveBeenCalledTimes(1)
             expect(result).toBeDefined()
         })
+    })
+})
+```
+
+
+
+
+
+Option2 - `prototype` :
+
+```typescript
+describe('prax', () => {
+    let spyOnGetPrax: MockInstance
+
+    beforeEach(() => {
+        spyOnGetPrax = vi.spyOn(DampsoftService.prototype, '_getPrax').mockReturnValue(
+            ['PRAX1', 'PRAX2']
+        )
+    })
+
+    it('sollte Array-basierte DBF-Pfade basierend auf prax-Verzeichnissen initialisieren', () => {
+        const service = new DampsoftService()
+        expect(spyOnGetPrax).toHaveBeenCalledOnce()
+        expect(service.befundDBPath[0]).toMatch(/.*\/DS\/daten\/PRAX\d+\/BEFUND\.DBF/)
+        expect(service.hkpPlanDBPath[0]).toMatch(/.*\/DS\/daten\/PRAX\d+\/HKPPLAN\.DBF/)
+        expect(service.psiDBPath[0]).toMatch(/.*\/DS\/daten\/PRAX\d+\/PSI\.DBF/)
+        expect(service.rechnungDBPath[0]).toMatch(/.*\/DS\/daten\/PRAX\d+\/RECHNUNG\.DBF/)
     })
 })
 ```

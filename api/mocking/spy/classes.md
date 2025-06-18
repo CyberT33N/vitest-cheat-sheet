@@ -64,6 +64,33 @@ describe('Patients', () => {
 
 <details><summary>Click to expand..</summary>
 
+
+
+**Wichtig:** Die `dot-notation` Regel muss in der ESLint-Konfiguration deaktiviert werden:
+
+```javascript
+// eslint.config.mjs
+export default tseslint.config(
+    // ... andere Konfigurationen
+
+    // ===== ESLINT CORE RULES CUSTOMIZATION =====
+    {
+        rules: {
+            // ... andere Regeln
+            'dot-notation': 'off' // Disabled to allow bracket notation for private method testing
+        }
+    },
+
+    // ===== ADDITIONAL TYPESCRIPT RULES =====
+    {
+        rules: {
+            // ... andere Regeln
+            '@typescript-eslint/dot-notation': 'off', // Disabled to allow bracket notation for private method testing
+        }
+    }
+)
+```
+
 Option1 - `as keyof` :
 
 ```typescript

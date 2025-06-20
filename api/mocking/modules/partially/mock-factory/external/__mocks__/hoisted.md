@@ -1,6 +1,5 @@
-# __mocks__
-
-## ✅ Example
+# Hoisted
+- Das nachfolgende Beispiel mockt **Axios** in der **Test-Setup-Datei**, welche mit **Vitest** vor den Tests geladen wird. Das Problem ist, dass es Komplikationen geben kann, wie z.B. wenn **FS** benutzt wird und innerhalb vom Code es an irgendeiner Stelle referenziert wird, weil durch den **Hoisted-Mechanismus** das Modul zu diesem Zeitpunkt schon überschrieben wird und das Modul dann nicht mehr verfügbar ist. Das bedeutet, diese Technik **MUSS** mit Bedacht benutzt werden, da zu diesem Zeitpunkt das Modul komplett überschrieben wird.
 
 
 `__mocks__/axios.ts`
@@ -256,15 +255,11 @@ function setupUnitTestEnvironment(): void {
 setupUnitTestEnvironment()
 ```
 
-
-
 <br><br>
 
 
 
 `test.ts`
-- Es ist **WICHTIG** zu beachten, dass, wenn wir die **Mock-Funktion** im **Describe-Block** aufrufen, sie **gehoistet** wird. Daher kann es zu **Komplikationen** mit **Modulen** kommen, die dann **FS** in der **Testumgebung** starten, weil dort zum Beispiel tatsächlich **Dateien** gelesen werden. Aber **FS** wird hier zu diesem Zeitpunkt dann schon **gemockt** sein. Um das zu vermeiden, **MUSS** man die **MOCK-AXIOS-Variable** in **BEFORE-EACH** definieren.
-
 ```typescript
 import { describe, it, expect, vi, beforeEach, MockedFunction, afterEach } from 'vitest'
 import { userService } from '../../src/userService.js'

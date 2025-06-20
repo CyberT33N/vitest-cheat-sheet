@@ -1,193 +1,44 @@
-# Rule: Effective Mocking of Modules/NPM-Packages in Vitest
 
-## Overview
 
-This documentation outlines the preferred and complementary approaches to mocking external modules/NPM packages in Vitest tests.
 
-## ❗ Critical Instructions
 
-* **PREFERRED APPROACH (Modular):** Use a **modular mock structure** with a dedicated mock factory class inside `__mocks__/`, to centrally manage and import mock logic in test files. This avoids hoisting issues, prevents unbound method errors, improves reusability, and increases maintainability.
-* **SECONDARY APPROACH (Full with `mockObject`):** If the modular approach isn’t feasible, use `vi.mock` in combination with `await importOriginal()` and `mockObject` from `vitest/mocker` to create a **complete, automatically generated mock object** of the module. This is type-safe and avoids having to manually replicate all exports.
-* **COMPLEMENTARY APPROACH (Partial):** If only specific functions of a module need to be overridden and a full mock isn't practical, use `vi.mock` with a factory function that calls `await vi.importActual()` to load the original module and selectively override functions with `vi.fn()`. This approach should only be used when the preferred methods are not applicable.
-* **AVOID** using `importMock()` inside a `vi.mock()` factory, as it can cause infinite recursion.
-* Ensure that mocked functions simulate the expected behavior for your tests.
-* Use `vi.mocked` for typed mock references when working with partial mocks.
 
-## ✅ Examples
 
-### ⭐ Preferred Approach: Modular Mock Structure
 
-This approach uses a separate mock factory file to encapsulate and reuse mock logic.
 
-#### 1. Mock Factory File (`__mocks__/axios.ts`)
 
-```typescript
-/* eslint-disable func-names */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/prefer-readonly-parameter-types */
 
-// ==== DEPENDENCIES ====
-import type { AxiosRequestConfig, HttpStatusCode } from 'axios'
-import { vi } from 'vitest'
 
-const actualAxios = await vi.importActual<typeof import('axios')>('axios')
 
-// Helper function to create a mock response
-const createMockResponse = <T>(data: T, config?: Readonly<AxiosRequestConfig>) => ({
-    data,
-    status: 200,
-    statusText: 'OK',
-    headers: {},
-    config: config ?? {},
-    request: {}
-})
 
-// Mock the default axios instance
-const mockedAxios = {
-    ...actualAxios.default,
-    get: vi.fn(async function get(url: string, config?: AxiosRequestConfig) {
-        if (url.includes('/api/partner/privyou-tool/version')) {
-            return createMockResponse({ success: true, version: 31 }, config)
-        }
 
-        if (url.includes('/api/partner/privyou-tool/config')) {
-            return createMockResponse({ success: true, pvsConfig: { updatedAt: new Date().toISOString() } }, config)
-        }
 
-        if (url.includes('/api/partner/practice/customers')) {
-            return createMockResponse({ success: true, data: 'mockEncryptedData' }, config)
-        }
 
-        const urlWithBaseUrl = `${this.defaults.baseURL ?? ''}${url}`
-        return actualAxios.default.get(urlWithBaseUrl, config)
-    }),
 
-    post: vi.fn(async function post(url: string, data?: unknown, config?: AxiosRequestConfig) {
-        if (url.includes('/api/partner/practice/finding')) {
-            return createMockResponse({ success: true, finding: 'mockFinding' }, config)
-        }
 
-        if (url.includes('/api/login-privyou')) {
-            return createMockResponse({
-                success: true,
-                user: { name: 'testuser', groups: ['testgroup'] },
-                token: 'testtoken'
-            }, config)
-        }
 
-        const urlWithBaseUrl = `${this.defaults.baseURL ?? ''}${url}`
-        return actualAxios.default.post(urlWithBaseUrl, data, config)
-    })
 
-    // put: vi.fn(async(url: string, data?: unknown, config?: AxiosRequestConfig) => {
-    //     return Promise.resolve(createMockResponse({}, config))
-    // }),
 
-    // patch: vi.fn(async(url: string, data?: unknown, config?: AxiosRequestConfig) => {
-    //     return Promise.resolve(createMockResponse({}, config))
-    // }),
 
-    // delete: vi.fn(async(url: string, config?: AxiosRequestConfig) => {
-    //     return Promise.resolve(createMockResponse({}, config))
-    // }),
 
-    // head: vi.fn(async(url: string, config?: AxiosRequestConfig) => {
-    //     return Promise.resolve(createMockResponse({}, config))
-    // }),
 
-    // options: vi.fn(async(url: string, config?: AxiosRequestConfig) => {
-    //     return Promise.resolve(createMockResponse({}, config))
-    // }),
 
-    // // Generic request method
-    // request: vi.fn(async(config: AxiosRequestConfig) => {
-    //     return Promise.resolve(createMockResponse({}, config))
-    // }),
 
-    // // Convenience methods for creating new instances
-    // create: vi.fn((config?: AxiosRequestConfig) => ({
-    //     ...mockedAxios,
-    //     defaults: { ...actualAxios.default.defaults, ...config }
-    // })),
 
-    // // Interceptors (simplified)
-    // interceptors: {
-    //     request: {
-    //         use: vi.fn(() => 0),
-    //         eject: vi.fn(),
-    //         clear: vi.fn(),
-    //         forEach: vi.fn()
-    //     },
-    //     response: {
-    //         use: vi.fn(() => 0),
-    //         eject: vi.fn(),
-    //         clear: vi.fn(),
-    //         forEach: vi.fn()
-    //     }
-    // },
 
-    // // Default configuration
-    // defaults: {
-    //     ...actualAxios.default.defaults,
-    //     timeout: 0,
-    //     withCredentials: false,
-    //     responseType: 'json' as const,
-    //     maxContentLength: -1,
-    //     maxBodyLength: -1,
-    //     maxRedirects: 21
-    // },
 
-    // // Utility methods
-    // getUri: vi.fn((config?: AxiosRequestConfig): string => {
-    //     return config?.url ?? ''
-    // }),
 
-    // // Static methods from axios module
-    // isCancel: actualAxios.isCancel,
-    // isAxiosError: actualAxios.isAxiosError,
-    // toFormData: actualAxios.toFormData,
-    // formToJSON: actualAxios.formToJSON,
-    // all: vi.fn(async <T>(values: (T | Promise<T>)[]): Promise<T[]> => {
-    //     return Promise.all(values)
-    // }),
-    // spread: actualAxios.spread,
-    // AxiosError: actualAxios.AxiosError,
-    // AxiosHeaders: actualAxios.AxiosHeaders,
-    // HttpStatusCode: actualAxios.HttpStatusCode
-}
 
-export default mockedAxios
-```
 
-#### 2. Simplified Test Setup (`test/unit/test-setup.ts`)
 
-```typescript
-/**
- * 📌 test/unit/test-setup.ts
- *
- * Setup file for unit tests.
- * This file is loaded via the setupFiles configuration in vitest.unit.config.ts.
- *
- * IMPORTANT: vi.* functions can be used here because setupFiles
- * run in the test suite context.
- */
 
-import { vi } from 'vitest'
 
-function setupUnitTestEnvironment(): void {
-    console.info('🧪 Initializing unit test environment...')
-    
-    vi.stubGlobal('UNIT_TEST_MODE', true)
 
-    // Mock Axios for HTTP requests (__mocks__/axios.ts)
-    vi.mock('axios')
 
-    console.info('✅ Unit test environment successfully initialized')
-}
 
-// Auto-execute on import
-setupUnitTestEnvironment()
-```
+
+
+
 
 ### Secondary Approach: Full Automatic Mocking with `mockObject`
 
@@ -253,6 +104,37 @@ describe('PineconeService', () => {
   });
 });
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ### Complementary Approach: Partial Mocking (Only if Necessary)
 

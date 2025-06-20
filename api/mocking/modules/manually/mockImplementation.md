@@ -1,18 +1,9 @@
+# Mock Factory
 
+## mockImplementation
 
+### Beispiel 1: `vi.mock` + `vi.mocked().mockImplementation()`
 
-<br><br>
-
-
----
-
-<br><br>
-
-
-
-### Beispiel 2: `vi.mock` + `vi.mocked().mockImplementation()`
-
-<details><summary>Click to expand..</summary>
 
 ```typescript
 // ==== Imports ====
@@ -246,8 +237,3 @@ describe('GoogleEmbeddingService() - Unit Tests with Mocks (Direct Mock)', () =>
     // ... Rest der Tests
 })
 ```
-
-</details>
-        
-</details>
-        

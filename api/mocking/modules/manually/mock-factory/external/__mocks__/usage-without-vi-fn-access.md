@@ -1,5 +1,44 @@
 # Usage without vi.fn access
 
+
+```typescript
+// Auto-Mock für axios (OHNE Vitest Mock-Funktionen)
+export default {
+  get: () => Promise.resolve({ 
+    data: { id: 1, name: 'Auto-Mocked User', email: 'auto@mock.com' } 
+  }),
+  post: () => Promise.resolve({ 
+    data: { id: 2, name: 'Created User', email: 'created@mock.com' } 
+  }),
+  delete: () => Promise.resolve({ status: 200 })
+}
+
+```
+
+```typescript
+import axios from 'axios'
+
+export class UserService {
+  async getUser(id) {
+    const response = await axios.get(`https://api.example.com/users/${id}`)
+    return response.data
+  }
+
+  async createUser(userData) {
+    const response = await axios.post('https://api.example.com/users', userData)
+    return response.data
+  }
+
+  async deleteUser(id) {
+    await axios.delete(`https://api.example.com/users/${id}`)
+    return { success: true }
+  }
+}
+
+export const userService = new UserService()
+
+```
+
 ```typescript
 import { describe, it, expect, vi } from 'vitest'
 import { userService } from '../src/userService.js'

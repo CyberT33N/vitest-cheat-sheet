@@ -9,7 +9,10 @@
 
 <br><br>
 
-# Example  - fs/promises
+# Example - fs/promises
+
+
+## Example 1 - vi.mocked
 
 ```typescript
 // test/my-file.test.ts
@@ -75,58 +78,50 @@ describe('Dateisystem Operationen', () => {
 
 <br><br>
 
-# Example - fs (synchron)
+## Example 2 - Directly usage of the mocked module
 
 <details><summary>Click to expand..</summary>
 
 <br><br>
 
 ```typescript
-// test/my-sync-file.test.ts
-import * as fsSync from 'fs';
-import { vi, describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { userService } from '../src/userService.js'
 
-// Mock das gesamte fs Modul
-vi.mock('fs', () => ({
-  existsSync: vi.fn(),
-  mkdirSync: vi.fn(),
-  writeFileSync: vi.fn(),
-  readFileSync: vi.fn(),
-}));
+// VITEST MOCK: Mit expliziter Factory-Funktion
+vi.mock('axios', () => ({
+  default: {
+    get: vi.fn(),
+    post: vi.fn(),
+    delete: vi.fn()
+  }
+}))
 
-// Typisierte Referenz zum gemockten Modul
-const mockedFsSync = vi.mocked(fsSync, true);
+// Import des gemockten axios NACH dem vi.mock
+const axios = await import('axios')
 
-describe('Synchrone Dateisystem Operationen', () => {
-  it('sollte prüfen, ob eine Datei existiert', () => {
-    const filePath = 'test/existierende-datei.txt';
+describe('UserService - Vitest Mock (Factory Variante)', () => {
+  beforeEach(() => {
+    // Reset aller Mocks vor jedem Test
+    vi.clearAllMocks()
+  })
 
-    // Setze die Implementierung für existsSync
-    mockedFsSync.existsSync.mockReturnValue(true);
+  it.only('sollte einen Benutzer abrufen und Aufruf prüfbar machen', async () => {
+    // ✅ Setup des Mock-Rückgabewerts
+    const mockUserData = { id: 1, name: 'Vitest User', email: 'vitest@test.com' }
+    axios.default.get.mockResolvedValue({ data: mockUserData })
+    
+    const user = await userService.getUser(1)
+    
+    // ✅ Daten-Assertion
+    expect(user).toEqual(mockUserData)
+    
+    // ✅ Mock-Aufruf-Assertions (DAS FUNKTIONIERT!)
+    expect(axios.default.get).toHaveBeenCalledTimes(1)
+    expect(axios.default.get).toHaveBeenCalledWith('https://api.example.com/users/1')
+  })
+})
 
-    // Rufe die Funktion auf, die existsSync verwendet
-    const exists = fsSync.existsSync(filePath);
-
-    // Überprüfe, ob existsSync mit den korrekten Argumenten aufgerufen wurde
-    expect(mockedFsSync.existsSync).toHaveBeenCalledWith(filePath);
-    // Überprüfe den zurückgegebenen Wert
-    expect(exists).toBe(true);
-  });
-
-  it('sollte eine Datei synchron schreiben', () => {
-    const filePath = 'test/output-sync.txt';
-    const fileContent = 'Synchroner Inhalt';
-
-    // Setze die Implementierung für writeFileSync
-    mockedFsSync.writeFileSync.mockReturnValue(undefined);
-
-    // Rufe die Funktion auf, die writeFileSync verwendet
-    fsSync.writeFileSync(filePath, fileContent);
-
-    // Überprüfe, ob writeFileSync mit den korrekten Argumenten aufgerufen wurde
-    expect(mockedFsSync.writeFileSync).toHaveBeenCalledWith(filePath, fileContent);
-  });
-});
 ```
 
 

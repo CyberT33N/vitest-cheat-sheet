@@ -1,6 +1,3 @@
-*💡 System-Gedanke/Planung: Der Benutzer meint vi.importMock() aus Vitest, nicht ImportMock aus ts-mock-imports.*
-*⚙️ System-Verarbeitung: Ich korrigiere meine Antwort und zeige den Vergleich zwischen vi.doMock() und vi.importMock().*
-
 ## **🔄 Runtime Module Mocking: `vi.doMock()` vs `vi.importMock()`**
 
 ### **📋 Kurze Zusammenfassung:**

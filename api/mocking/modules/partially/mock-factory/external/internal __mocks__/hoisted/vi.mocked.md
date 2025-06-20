@@ -261,67 +261,82 @@ setupUnitTestEnvironment()
 
 `test.ts`
 ```typescript
-import { describe, it, expect, vi, beforeEach, MockedFunction, afterEach } from 'vitest'
-import { userService } from '../../src/userService.js'
 import axios, { type AxiosResponse } from 'axios'
+import { describe, it, expect, vi, afterEach, MockInstance } from 'vitest'
+import { userService } from '../../src/userService.js'
+
+// 🚀 ULTIMATIVE LÖSUNG: DeepMocked Type mit direkter MockInstance Integration
+// MockInstance hat mockReturnValue, mockImplementation, mockRestore, etc.
+type DeepMocked<T> = {
+  readonly [K in keyof T]: T[K] extends (...args: infer A) => infer R
+      ? MockInstance<(...args: A) => R> & ((...args: A) => R)
+      : T[K] extends object
+      ? DeepMocked<T[K]>
+      : T[K]
+}
+
+// 🎯 HELPER FUNCTION: Semantisch klares Single-Cast ohne doppelte Assertion
+const createMockedModule = <T>(mockedModule: T): DeepMocked<T> => 
+  mockedModule as DeepMocked<T>
+
 
 describe('UserService', () => {
-  // ✅ ENTERPRISE PATTERN: Deep mocking für vollständige Mock-Kontrolle  
-  const mockedAxios = vi.mocked(axios, { deep: true })
+    // ✅ ENTERPRISE PATTERN: Deep mocking für vollständige Mock-Kontrolle  
+    const viMockedAxios = vi.mocked(axios, { deep: true })
+    const mockedAxios = createMockedModule(viMockedAxios)
 
-  afterEach(() => {
+    afterEach(() => {
     // Mock ist bereits korrekt typisiert - kein erneutes Assignment nötig
-    vi.clearAllMocks()
-  })
-
-  it('sollte einen Benutzer abrufen (Auto-Mock)', async () => {
-    const user = await userService.getUser(1)
-    
-    // ✅ Das funktioniert - wir bekommen die gemockten Daten
-    expect(user).toEqual({
-      success: true,
-      data: "mockEncryptedData",
+        vi.clearAllMocks()
     })
 
-    // ✅ KEIN .default nötig - axios ist direkt die AxiosStatic-Instanz
-    expect(mockedAxios.get).toHaveBeenCalledWith('https://api.example.com/users/1')
-    expect(mockedAxios.get).toHaveBeenCalledTimes(1)
-  })
+    it('sollte einen Benutzer abrufen (Auto-Mock)', async() => {
+        const user = await userService.getUser(1)
+    
+        // ✅ Das funktioniert - wir bekommen die gemockten Daten
+        expect(user).toEqual({
+            success: true,
+            data: 'mockEncryptedData'
+        })
 
-  it('sollte einen Benutzer abrufen (CUSTOM INLINE MOCK)', async () => {
+        // ✅ KEIN .default nötig - axios ist direkt die AxiosStatic-Instanz
+        expect(mockedAxios.get).toHaveBeenCalledWith('https://api.example.com/users/1')
+        expect(mockedAxios.get).toHaveBeenCalledTimes(1)
+    })
+
+    it('sollte einen Benutzer abrufen (CUSTOM INLINE MOCK)', async() => {
     // 🚀 ENTERPRISE PATTERN: Typsichere Mock-Überschreibung ohne ANY-Casting
-    const customResponse: AxiosResponse = {
-      data: {
-        success: true,
-        data: "CUSTOM_INLINE_MOCK_DATA",
-        customField: "NUR_FÜR_DIESEN_TEST"
-      },
-      status: 200,
-      statusText: 'OK',
-      headers: {},
-      config: {
-        headers: {} as any // Minimal config für Mock-Zwecke
-      },
-      request: {}
-    }
+        const customResponse: AxiosResponse = {
+            data: {
+                success: true,
+                data: 'CUSTOM_INLINE_MOCK_DATA',
+                customField: 'NUR_FÜR_DIESEN_TEST'
+            },
+            status: 200,
+            statusText: 'OK',
+            headers: {},
+            config: {
+                headers: {} as any // Minimal config für Mock-Zwecke
+            },
+            request: {}
+        }
     
-    // ✅ Deep Mocking ermöglicht typsichere Mock-Methoden
-    mockedAxios.get.mockResolvedValueOnce(customResponse)
+        // ✅ Deep Mocking ermöglicht typsichere Mock-Methoden
+        mockedAxios.get.mockResolvedValueOnce(customResponse)
 
-    const user = await userService.getUser(1)
+        const user = await userService.getUser(1)
     
-    // ✅ Jetzt bekommen wir die CUSTOM-DATEN statt der hardcodierten Mock-Factory-Daten
-    expect(user).toEqual({
-      success: true,
-      data: "CUSTOM_INLINE_MOCK_DATA",
-      customField: "NUR_FÜR_DIESEN_TEST"
+        // ✅ Jetzt bekommen wir die CUSTOM-DATEN statt der hardcodierten Mock-Factory-Daten
+        expect(user).toEqual({
+            success: true,
+            data: 'CUSTOM_INLINE_MOCK_DATA',
+            customField: 'NUR_FÜR_DIESEN_TEST'
+        })
+
+        expect(mockedAxios.get).toHaveBeenCalledWith('https://api.example.com/users/1')
+        expect(mockedAxios.get).toHaveBeenCalledTimes(1)
     })
-
-    expect(mockedAxios.get).toHaveBeenCalledWith('https://api.example.com/users/1')
-    expect(mockedAxios.get).toHaveBeenCalledTimes(1)
-  })
 })
-
 ```
 
 

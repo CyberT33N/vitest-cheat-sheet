@@ -6,6 +6,15 @@
 
 ---
 
+## ⚡ **Hoisted Mock Strategies** (Kompilierzeit)
+
+### 🏆 **BEST PRACTICE: `vi.mocked()`**
+- **Datei:** [`internal __mocks__/hoisted/vi.mocked.md`](./internal%20__mocks__/hoisted/vi.mocked.md)
+- **Warum optimal:** Beste Performance, einfachste Syntax, automatisches Hoisting, perfekte TypeScript-Typisierung
+- **Ideal für:** Standard-Mocking, maximale Performance, einfache Test-Setups
+
+---
+
 ## 🚀 **Runtime Mock Strategies** (Zur Laufzeit)
 
 > **⚠️ WICHTIG:** Runtime-Mocks **MÜSSEN** nur in **Edge-Cases** verwendet werden, wo andere Dependencies ein gemocktes Modul aufrufen und es bei der Hoisted-Variante zu früh gemockt wird. **PRIORISIERE IMMER ZUERST die Hoisted-Mock-Strategien** - nur wenn Hoisting-Konflikte auftreten, wechsle zur Runtime-Variante.
@@ -20,14 +29,6 @@
 - **Warum zweitrangig:** Zwei-Schritt-Prozess, manuelles Cleanup erforderlich, mehr Boilerplate
 - **Ideal für:** Legacy-Code, spezielle Edge-Cases, wenn Callback-Approach nicht funktioniert
 
----
-
-## ⚡ **Hoisted Mock Strategies** (Kompilierzeit)
-
-### 🏆 **BEST PRACTICE: `vi.mocked()`**
-- **Datei:** [`internal __mocks__/hoisted/vi.mocked.md`](./internal%20__mocks__/hoisted/vi.mocked.md)
-- **Warum optimal:** Beste Performance, einfachste Syntax, automatisches Hoisting, perfekte TypeScript-Typisierung
-- **Ideal für:** Standard-Mocking, maximale Performance, einfache Test-Setups
 
 ---
 

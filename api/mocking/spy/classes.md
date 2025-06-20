@@ -45,6 +45,17 @@ describe('Patients', () => {
 </details>
 
 
+
+
+
+
+
+
+
+
+
+
+
 <br><br>
 <br><br>
 
@@ -52,6 +63,33 @@ describe('Patients', () => {
 ### Privat
 
 <details><summary>Click to expand..</summary>
+
+
+
+**Wichtig:** Die `dot-notation` Regel muss in der ESLint-Konfiguration deaktiviert werden:
+
+```javascript
+// eslint.config.mjs
+export default tseslint.config(
+    // ... andere Konfigurationen
+
+    // ===== ESLINT CORE RULES CUSTOMIZATION =====
+    {
+        rules: {
+            // ... andere Regeln
+            'dot-notation': 'off' // Disabled to allow bracket notation for private method testing
+        }
+    },
+
+    // ===== ADDITIONAL TYPESCRIPT RULES =====
+    {
+        rules: {
+            // ... andere Regeln
+            '@typescript-eslint/dot-notation': 'off', // Disabled to allow bracket notation for private method testing
+        }
+    }
+)
+```
 
 Option1 - `as keyof` :
 
@@ -90,6 +128,147 @@ describe('getOrCreateIndex()', () => {
             expect(createIndexAndWaitSpy).toHaveBeenCalledTimes(1)
             expect(result).toBeDefined()
         })
+    })
+})
+```
+
+
+
+For extended classes you may have to check this:
+
+<details><summary>Click to expand..</summary>
+
+# TypeScript `vi.spyOn()` Problem: Private Methoden in vererbten Klassen
+
+## Problem-Zusammenfassung
+
+**Fehler:** `Type '"_getPrax"' is not assignable to parameter of type "methodName1" | "methodName2" | ...`
+
+## Warum funktioniert es in PineconeService, aber nicht in DampsoftService?
+
+### ✅ **PineconeService (FUNKTIONIERT)**
+
+```typescript
+export class PineconeService {  // ← Keine Vererbung
+    private async _createIndexAndWait() { ... }
+}
+
+// Test funktioniert:
+vi.spyOn(service, '_createIndexAndWait' as keyof PineconeService)
+```
+
+**Grund:** Bei Klassen **ohne Vererbung** enthält `keyof ClassName` alle eigenen Members, einschließlich privater Methoden zur Compile-Zeit.
+
+### ❌ **DampsoftService (FUNKTIONIERT NICHT)**
+
+```typescript
+export class DampsoftService extends PvsBasisService {  // ← Mit Vererbung
+    private _getPrax() { ... }
+}
+
+// Test schlägt fehl:
+vi.spyOn(service, '_getPrax' as keyof DampsoftService)  // ❌ Error
+```
+
+**Grund:** Bei **vererbten Klassen** wird `keyof DampsoftService` durch die **abstrakten public Methoden** der Basisklasse dominiert. Private Methoden der abgeleiteten Klasse sind **nicht** im `keyof`-Typ enthalten.
+
+## TypeScript Verhalten Erklärung
+
+### Vererbung beeinflusst `keyof`
+
+```typescript
+// PvsBasisService hat abstrakte public Methoden:
+abstract class PvsBasisService {
+    public abstract synchronizePatients(): Promise<...>
+    public abstract getPvsPatients(): Promise<...>
+    // ... weitere abstrakte Methoden
+}
+
+// DampsoftService erbt diese:
+class DampsoftService extends PvsBasisService {
+    private _getPrax() { ... }  // ← Diese Methode ist NICHT in keyof enthalten
+}
+
+// keyof DampsoftService = "synchronizePatients" | "getPvsPatients" | ...
+// aber NICHT "_getPrax"
+```
+
+## Lösung: Intersection Type mit expliziter Typisierung
+
+```typescript
+// ✅ Korrekte Lösung:
+spyOnGetPrax = vi.spyOn(
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    service as DampsoftService & { _getPrax: typeof service['_getPrax'] }, 
+    '_getPrax'
+).mockReturnValue(['PRAX1', 'PRAX2'])
+```
+
+### Was passiert hier:
+
+1. **Intersection Type:** `DampsoftService & { _getPrax: ... }` erweitert den Typ
+2. **Explizite Typisierung:** `typeof service['_getPrax']` sichert den korrekten Methodentyp
+3. **ESLint Disable:** Umgeht Naming-Convention für private Member in Tests
+4. **Bracket Notation:** `service['_getPrax']` umgeht die `keyof`-Beschränkung
+
+## Regel für AI-Agents
+
+**WENN** `vi.spyOn()` auf private Methoden fehlschlägt **UND** die Klasse erbt:
+1. ✅ Verwende Intersection Type: `service as ClassName & { privateMethod: typeof service['privateMethod'] }`
+2. ✅ Füge ESLint-Disable für naming-convention hinzu
+3. ❌ Vermeide `as any` Typecasting
+4. ❌ Mache private Methoden nicht public
+
+**WENN** die Klasse **nicht erbt:**
+- ✅ Standard `keyof ClassName` funktioniert normal
+
+## Technischer Hintergrund
+
+TypeScript's `keyof` Operator verhält sich bei Vererbung restriktiver, da er nur die **öffentlich zugänglichen Members** des kombinierten Typs (Basisklasse + abgeleitete Klasse) berücksichtigt. Private Methoden werden durch die Vererbungshierarchie "versteckt".
+    
+</details>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<br><br>
+<br><br>
+
+
+
+
+
+Option2 - `prototype` :
+
+```typescript
+describe('prax', () => {
+    let spyOnGetPrax: MockInstance
+
+    beforeEach(() => {
+        spyOnGetPrax = vi.spyOn(DampsoftService.prototype, '_getPrax').mockReturnValue(
+            ['PRAX1', 'PRAX2']
+        )
+    })
+
+    it('sollte Array-basierte DBF-Pfade basierend auf prax-Verzeichnissen initialisieren', () => {
+        const service = new DampsoftService()
+        expect(spyOnGetPrax).toHaveBeenCalledOnce()
+        expect(service.befundDBPath[0]).toMatch(/.*\/DS\/daten\/PRAX\d+\/BEFUND\.DBF/)
+        expect(service.hkpPlanDBPath[0]).toMatch(/.*\/DS\/daten\/PRAX\d+\/HKPPLAN\.DBF/)
+        expect(service.psiDBPath[0]).toMatch(/.*\/DS\/daten\/PRAX\d+\/PSI\.DBF/)
+        expect(service.rechnungDBPath[0]).toMatch(/.*\/DS\/daten\/PRAX\d+\/RECHNUNG\.DBF/)
     })
 })
 ```

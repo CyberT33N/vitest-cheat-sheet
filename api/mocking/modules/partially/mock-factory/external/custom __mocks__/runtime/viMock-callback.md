@@ -1,58 +1,6 @@
-# Mock Factory
+# vi.mock() - Import des Mocks mit Callback
 
-- Die folgenden Beispiele sind kein vollständig vollständiges **Automocking**, da die neu erstellte **Klasseninstanz**, die in anderen Dateien erstellt wird, mit einem **Mock** überschrieben werden **MUSS**.
-
-<details><summary>Click to expand..</summary>
-
-### Zusammenfassung: Mocking von Klassen (insb. von externen Modulen) in Vitest
-
-Wenn du Klassen mocken musst, insbesondere solche, die von externen Modulen exportiert werden (z.B. SDK-Clients), unterscheidet sich der Ansatz vom Mocking einfacher Objekte oder Funktionen. Das Hauptziel ist oft, den **Konstruktor** der Klasse zu kontrollieren und/oder **Methoden von Instanzen** dieser Klasse zu mocken.
-
-Es gibt verschiedene Wege, dies zu erreichen. Hier sind zwei gängige Ansätze, die in den Beispielen gezeigt werden:
-
-1.  **Hoisted Mock Factory mit `mockObject` und `vi.importActual`**:
-    *   Dieser Ansatz ist sehr explizit und nutzt `vi.hoisted()` um eine Factory zu erstellen, die das Mock-Setup vor allen anderen Modul-Imports durchführt.
-    *   `vi.importActual` lädt das originale Modul.
-    *   `mockObject` (von `vitest/mocker`) erstellt ein gemocktes Objekt des Originals.
-    *   Entscheidend ist, den **Konstruktor der Klasse** innerhalb des gemockten Moduls zu überschreiben (z.B. `gemocktesModul.KlassenName = vi.fn().mockImplementation(() => mockInstanz)`), sodass er eine von dir definierte **Mock-Instanz** zurückgibt.
-    *   Diese Mock-Instanz enthält dann die gemockten Methoden (z.B. `methodenName: vi.fn()`), die du in deinen Tests steuern und überwachen kannst.
-    *   **Vorteil:** Klare Struktur, einfacher Zugriff auf die Mock-Instanz und ihre Methoden im Test.
-    *   **Nachteil:** Etwas mehr Boilerplate durch die Factory.
-
-2.  **Direkter Modul-Mock mit `vi.fn().mockImplementation()` für die Klasse**:
-    *   Hier wird das Modul direkt innerhalb von `vi.mock('modul-pfad', () => { ... })` gemockt.
-    *   Die exportierte Klasse selbst wird durch ein `vi.fn()` ersetzt.
-    *   Die `.mockImplementation(() => { return { /* gemockte Instanzmethoden */ }; })` dieser Funktion gibt dann ein Objekt zurück, das eine Instanz der Klasse simuliert. Die Methoden dieses Objekts sind wiederum `vi.fn()`.
-    *   **Vorteil:** Kompakter, da keine separate Factory-Struktur nötig ist.
-    *   **Nachteil:** Der Zugriff auf die *gemockten Methoden der Instanz* im Test-Setup kann etwas umständlicher sein, oft über `gemockteKlasse.mock.results[index].value.methodenName`, da jede Instanziierung der Klasse (z.B. durch `new GemockteKlasse()`) ein neues "result" im Mock-Objekt der Klasse erzeugt.
-
-Beide Ansätze ermöglichen es dir, das Verhalten von Klasseninstanzen präzise für deine Unit-Tests zu steuern.
-
-
-
-
-
-
-<br><br>
-
----
-
-<br><br>
-
-
-
-
-### ❌ Problem: `importMock()` Inside `vi.mock()` = 💥 Infinite Recursion
-
-Calling `importMock()` **inside** a `vi.mock()` block is a trap:
-It tries to load the very module you're currently mocking → triggers `vi.mock()` again → **infinite loop** → boom.
-
----
-
-### ✅ Solution #1: Use `importOriginal()`
-
-Never use `importMock()` inside `vi.mock()`.
-Instead, Vitest provides `importOriginal or importActual` exactly for this purpose:
+- Dieses Beispiel hier benutzt zwar den gleichen Ordnernamen **__mox__** für den **MOC-Ordner**. Er ist aber nicht äquivalent zu dem auf der **Routebene**, welcher automatisch gemockt wird, wenn man die **MOC** mit dem jeweiligen **Modul** aufruft. Wir haben es nur sinnbildlich gleich genannt.
 
 
 
@@ -60,63 +8,7 @@ Instead, Vitest provides `importOriginal or importActual` exactly for this purpo
 
 
 
-
-<br><br>
-
----
-
-<br><br>
-
-
-### Beispiel 1: `__mocks__` **PREFERRED**
-
-
-# Vitest Mock Refaktorierung: Von Hoisted zu Modularer Struktur
-
-## Übersicht
-
-Diese Dokumentation beschreibt die Refaktorierung der Pinecone-Service-Tests von einem komplexen `vi.hoisted()` Ansatz zu einer sauberen, modularen Mock-Struktur.
-
-## Problem: Ursprünglicher Hoisted-Ansatz
-
-### Probleme des alten Ansatzes
-
-1. **Unbound Method Errors**: Direkte Referenzen auf Mock-Methoden verursachten ESLint-Fehler
-2. **Komplexität**: Über 200 Zeilen Mock-Code direkt in der Test-Datei
-3. **Wartbarkeit**: Schwer zu verstehen und zu erweitern
-4. **Wiederverwendbarkeit**: Mock-Code war nicht zwischen Tests teilbar
-
-### Alter Code-Struktur
-
-```typescript
-// ❌ PROBLEMATISCH - Alter Ansatz
-const mockFactory = vi.hoisted(() => {
-    let mockedPineconeModule: MockedPineconeModule
-    let mockPineconeInstance: Pinecone
-    // ... 200+ Zeilen Mock-Code
-    
-    const createMockIndexObject = (): Index => {
-        return {
-            namespace: mockNamespaceFn,  // ❌ Unbound method
-            upsert: mockUpsertFn,        // ❌ Unbound method
-            // ... weitere Mock-Methoden
-        }
-    }
-    
-    return {
-        getMockedPineconeModule: () => mockedPineconeModule,
-        getMockIndexInstance: () => mockIndexInstance,
-        // ... viele Getter-Funktionen
-    }
-})
-
-vi.mock('@pinecone-database/pinecone', async() => {
-    const module = await mockFactory.createAndStoreMockedModule()
-    return module
-})
-```
-
-## Lösung: Modulare Mock-Struktur
+## Beispiel
 
 ### Neue Dateistruktur
 
@@ -345,3 +237,43 @@ describe('YourService Tests', () => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<br><br>
+<br><br>
+
+
+# Troubshooting
+
+
+
+### ❌ Problem: `importMock()` Inside `vi.mock()` = 💥 Infinite Recursion
+
+Calling `importMock()` **inside** a `vi.mock()` block is a trap:
+It tries to load the very module you're currently mocking → triggers `vi.mock()` again → **infinite loop** → boom.
+
+---
+
+### ✅ Solution #1: Use `importOriginal()`
+
+Never use `importMock()` inside `vi.mock()`.
+Instead, Vitest provides `importOriginal or importActual` exactly for this purpose:

@@ -1,6 +1,11 @@
 # Runtime
 
-- Dieses **Beispiel** ist das **Äquivalent** zum **Hoisted-Beispiel**. Hier laden wir in der **Runtime** erst den **Mog**. Die **Begründung** ist, dass gegebenenfalls in einem **Test-Setup** oder an anderen Stellen schon **Module** aufgerufen werden, welche wir **IMPLEMENTIEREN** zu **moggen**. Um dementsprechend **Konflikte** zu vermeiden, starten wir den **Mog** erst innerhalb der **Tests**.
+## Example
+
+- Dieses **Beispiel** ist das **Äquivalent** zum **Hoisted-Beispiel**. Hier laden wir in der **Runtime** erst den **Mog**. Die **Begründung** ist, dass gegebenenfalls in einem **Test-Setup** oder an anderen Stellen schon **Module** aufgerufen werden, welche wir **IMPLEMENTIEREN** zu **mocken**. Um dementsprechend **Konflikte** zu vermeiden, starten wir den **Mock** erst innerhalb der **Tests**.
+
+- Damit folgender Ansatz funktioniert, **MÜSSEN** wir `doMock` verwenden und es in `BeforeAll` initialisieren, also zur **RUNTIME**. Das **PROBLEM** ist, dass der jeweilige **SERVICE**, den wir testen, also die **KLASSE** oder die **FUNKTION**, nicht statisch oben als **TOP-LEVEL-IMPORT** benutzt werden kann. Wir **MÜSSEN** zuerst `doMock` verwenden und **MÜSSEN** danach sicherstellen, dass wir das **MODUL** importieren. Es **DARF NICHT** sein, dass ein **MODUL** als **TOP-LEVEL-IMPORT** importiert wird, nur um z.B. die **TYPES** usw. zu beziehen, weil es dann nicht mehr funktioniert. Es **MUSS** sichergestellt werden, dass der allererste **IMPORT** von dem **SERVICE**, den wir später testen wollen, mit dem **MOCK** nach `doMock` passiert.
+
 
 
 `__mocks__/axios.ts`
@@ -227,7 +232,7 @@ export const userService = new UserService()
 ```typescript
 import axios from 'axios'
 import { describe, it, expect, vi, afterEach, beforeAll, type MockInstance } from 'vitest'
-import { userService } from '../../src/userService.js'
+// ✅ FAZIT: Statischer Import funktioniert NICHT mit vi.resetModules() + vi.doMock()
 
 // 🚀 ULTIMATIVE LÖSUNG: DeepMocked Type mit direkter MockInstance Integration
 // MockInstance hat mockReturnValue, mockImplementation, mockRestore, etc.
@@ -247,13 +252,20 @@ describe('UserService', () => {
     // ✅ PERFEKTE LÖSUNG: Rekursiver Utility Type ersetzt ALLE Methoden
     // Funktioniert mit JEDEM Package - axios, fs, path, etc.
     let mockedAxios: DeepMocked<typeof axios>
+    let userService: { getUser: (id: number) => Promise<{ success: boolean; data: string }> }
 
-    beforeAll(() => {
-        // ✅ CORRECT TIMING: Mock wird erst hier erstellt, nicht im describe-Block  
-        vi.mock('axios')
-        // Nach vi.mock() ist axios automatisch gemockt - Single-Cast mit Helper
-        const viMockedAxios = vi.mocked(axios, { deep: true })
+    beforeAll(async() => {
+        // ✅ ZURÜCK ZUR FUNKTIONIERENDEN LÖSUNG: vi.doMock() + dynamische Imports
+        vi.doMock('axios')
+        
+        // Nach doMock müssen wir das Modul dynamisch importieren
+        const axiosModule = await import('axios')
+        const viMockedAxios = vi.mocked(axiosModule.default, { deep: true })
         mockedAxios = createMockedModule(viMockedAxios)
+        
+        // userService NACH axios-Mock importieren
+        const userServiceModule = await import('../../src/userService.ts')
+        userService = userServiceModule.userService
     })
 
     afterEach(() => {
@@ -268,6 +280,7 @@ describe('UserService', () => {
             }
         }))
 
+        // ✅ FUNKTIONIERT: userService verwendet jetzt gemocktes axios
         const user = await userService.getUser(1)
     
         // ✅ Das funktioniert - wir bekommen die gemockten Daten
@@ -284,9 +297,6 @@ describe('UserService', () => {
 })
 
 ```
-
-
-
 
 
 

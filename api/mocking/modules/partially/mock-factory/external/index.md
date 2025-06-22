@@ -2,20 +2,21 @@
 
 Dieses Dokument dient als Referenz für die Auswahl der optimalen Mocking-Strategie für externe NPM-Module in einem Vitest-basierten Test-Setup. Die Wahl der Strategie hängt maßgeblich vom Ausführungszeitpunkt des Mocks (Kompilierzeit vs. Laufzeit) und der Komplexität des zu mockenden Moduls ab.
 
-## Prioritätsliste & Best Practices
+## Priorisierte Implementierungs-Reihenfolge
 
-> **⚠️ WICHTIG:** Bevorzugen Sie **IMMER** Hoisted Mock Strategies. Runtime-Mocks sind eine leistungsstarke, aber sekundäre Option, die nur dann eingesetzt werden sollte, wenn es zu unauflösbaren Konflikten durch das Hoisting kommt.
-
-1.  🏆 **Hoisted (Kompilierzeit):** Die schnellste, einfachste und bevorzugte Methode für Standardfälle.
-2.  🚀 **Runtime (Laufzeit):** Die flexible Lösung für komplexe SDKs und kritische Hoisting-Konflikte.
+> **⚠️ WICHTIG:** Die folgende Reihenfolge ist eine **strikte Handlungsanweisung**. Beginnen Sie immer mit der ersten Option und gehen Sie nur dann zur nächsten über, wenn die vorherige für den Anwendungsfall ungeeignet ist.
+>
+> 1.  **(Standard) Hoisted via `__mocks__`:** Immer die erste Wahl für einfache Module.
+> 2.  **(Fallback) Hoisted via Zentrale Mock-Datei:** Der zweite Schritt für komplexe SDKs, die noch gehoisted werden können.
+> 3.  **(Edge Case) Runtime:** Die letzte Option, wenn Hoisting aufgrund von Lade-Reihenfolge-Konflikten fehlschlägt.
 
 ---
 
 ## ⚡ Strategie 1: Hoisted Mocking (Kompilierzeit)
 
-Dies ist der "Gold-Standard" für das Mocking in Vitest. Er nutzt die Fähigkeit von Vitest, Modul-Imports zur Kompilierzeit zu erkennen und durch Mocks zu ersetzen, bevor der eigentliche Testcode ausgeführt wird.
+Dies ist der "Gold-Standard" für das Mocking in Vitest. Er nutzt die Fähigkeit von Vitest, Modul-Imports zur Kompilierzeit zu erkennen und durch Mocks zu ersetzen, bevor der eigentliche Testcode ausgeführt wird. **Diese Strategie MUSS immer zuerst versucht werden.**
 
-### 🏆 **BEST PRACTICE: Automatisches Mocking via `__mocks__`-Verzeichnis**
+### 🥇 **#1 BEST PRACTICE (Standard): Automatisches Mocking via `__mocks__`**
 - **Referenz-Datei:** [`internal __mocks__/hoisted/vi.mocked.md`](./internal%20__mocks__/hoisted/vi.mocked.md)
 - **Warum optimal:** Beste Performance, einfachste Syntax, automatisches Hoisting, perfekte TypeScript-Typisierung in Kombination mit `vi.mocked()`.
 - **Ideal für:** Standard-Mocking einfacher, zustandsloser Bibliotheken (`axios`, `lodash`).
@@ -23,11 +24,16 @@ Dies ist der "Gold-Standard" für das Mocking in Vitest. Er nutzt die Fähigkeit
 #### **Konzept & Anwendungsfall: Das "Axios-Modell"**
 Ein `__mocks__`-Verzeichnis im Projekt-Root enthält eine Mock-Implementierung (z.B., `__mocks__/axios.ts`). Ein einfacher Aufruf von `vi.mock('axios')` aktiviert diesen Mock global und implizit für den gesamten Testlauf. Dies ist perfekt für Bibliotheken, bei denen einfache Funktionsüberschreibungen ausreichen.
 
+### 🥈 **#2 FALLBACK: Zentrale Mock-Datei mit `vi.hoisted()`**
+- **Referenz-Datei:** [`custom __mocks__/hoisted/single-test-file.md`](./custom%20__mocks__/hoisted/single-test-file.md)
+- **Warum ein guter Fallback:** Diese Methode ist die **Hoisted-Variante des "Pinecone-Modells"**. Sie bietet die gleiche saubere Trennung von Mock- und Test-Logik wie die Runtime-Factory, nutzt aber die Vorteile des Hoistings für eine bessere Performance, solange keine kritischen Ladekonflikte vorliegen.
+- **Ideal für:** **Komplexe, instanzbasierte SDK-Architekturen** (ähnlich dem Pinecone-Beispiel), bei denen die automatische Mock-Methode nicht ausreicht, aber ein Runtime-Mock (Strategie 2) noch nicht zwingend notwendig ist.
+
 ---
 
 ## 🚀 Strategie 2: Runtime Mocking (Zur Laufzeit)
 
-Dieser Ansatz wird verwendet, wenn Hoisting zu Problemen führt oder wenn eine komplexe, instanzbasierte Bibliothek gemockt werden muss, die mehr Kontrolle erfordert.
+Dieser Ansatz wird verwendet, **wenn die beiden Hoisted-Methoden aus Strategie 1 fehlschlagen**. Dies geschieht typischerweise, wenn Hoisting zu Problemen führt oder wenn eine komplexe, instanzbasierte Bibliothek gemockt werden muss, die mehr Kontrolle erfordert.
 
 ### 🥇 **#1 EMPFOHLEN: `vi.mock()` mit Async Callback & Mock-Factory**
 - **Referenz-Datei:** [`custom __mocks__/runtime/viMock-callback.md`](./custom%20__mocks__/runtime/viMock-callback.md)

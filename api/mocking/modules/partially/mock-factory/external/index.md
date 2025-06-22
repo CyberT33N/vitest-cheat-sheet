@@ -4,10 +4,94 @@ Dieses Dokument dient als Referenz für die Auswahl der optimalen Mocking-Strate
 
 ## Priorisierte Implementierungs-Reihenfolge
 
-> **⚠️ WICHTIG:** Die folgende Reihenfolge ist eine **strikte Handlungsanweisung**. Beginnen Sie immer mit der ersten Option und gehen Sie nur dann zur nächsten über, wenn die vorherige für den Anwendungsfall ungeeignet ist.
->
-> 1.  **(Standard) Hoisted via `__mocks__`:** Immer die erste Wahl für einfache Module.
-> 2.  **(Edge Case) Runtime:** Die letzte Option, wenn Hoisting aufgrund von Lade-Reihenfolge-Konflikten fehlschlägt oder für für komplexe SDKs.
+> **⚠️ WICHTIG:** Die folgende Reihenfolge ist eine **strategische Entscheidungsmatrix** basierend auf der **Modul-Architektur**. Die Wahl der Strategie hängt **DIREKT** von der **Komplexität und Struktur** des zu mockenden Moduls ab, nicht nur von Problemen mit der ersten Strategie.
+
+### **Strategie 1: Hoisted Mocking - SIMPLE STANDARDMODULE**
+**Status:** ⭐ **FÜR EINFACHE, ZUSTANDSLOSE MODULE**
+- **Zielgruppe:** **Funktionsbasierte Module** ohne komplexe Instanziierung
+- **Perfekt für:** `fs`, `axios`, `lodash`, `path`, `crypto`, `os`
+- **Mechanismus:** `__mocks__/[module].ts` + `vi.mock('[module]')` in Setup-Dateien
+- **Charakteristika:** Module mit **direkten Funktionsexporten** oder **einfachen Default-Exports**
+- **Erkennungsmerkmale:**
+  ```typescript
+  // ✅ Geeignet für Strategie 1:
+  import fs from 'fs'              // Einfacher Namespace
+  import axios from 'axios'        // Direkter Default-Export
+  import _ from 'lodash'           // Funktionssammlung
+  fs.readFileSync(...)             // Direkte Funktionsaufrufe
+  axios.get(...)                   // Statische Methodenaufrufe
+  ```
+
+### **Strategie 2: Runtime Mocking - KOMPLEXE SDK-KLASSEN**
+**Status:** 🏗️ **DIREKT FÜR KLASSENBASIERTE SDKs**
+- **Zielgruppe:** **Instanzbasierte SDKs** mit komplexer Objekthierarchie
+- **Designed für:** `@pinecone-database/pinecone`, `@aws-sdk/*`, `firebase`, `mongodb`, `redis`
+- **Mechanismus:** Mock-Factory-Pattern + `vi.mock('[module]', async () => { ... })`
+- **Charakteristika:** Module mit **Konstruktor-basierten APIs** und **verketteten Instanzen**
+- **Erkennungsmerkmale:**
+  ```typescript
+  // ✅ Benötigt DIREKT Strategie 2:
+  import { Pinecone } from '@pinecone-database/pinecone'
+  const pinecone = new Pinecone({ apiKey: '...' })    // Klassen-Instanziierung
+  const index = pinecone.index('my-index')            // Verkettete Objekterstellung
+  await index.namespace('ns').upsert([...])          // Verschachtelte Methodenketten
+  
+  // ✅ Weitere Beispiele:
+  const client = new MongoClient(uri)                 // Constructor-Pattern
+  const db = client.db('mydb')                        // Instanz-Methoden
+  const collection = db.collection('users')          // Verkettete Objekterstellung
+  ```
+- **WICHTIG:** Diese Module **KÖNNEN NICHT** mit Strategie 1 gemockt werden, da die **Mock-Factory-Logik** für **Klasseninstanzen** zwingend erforderlich ist
+
+### **Strategie 3: Kritische Hoisting-Konflikte - LAST RESORT**
+**Status:** 🚨 **NUR bei schwerwiegenden Architektur-Konflikten**
+- **Anwendungsfall:** Wenn **Strategie 1 oder 2** durch **Lade-Reihenfolge-Konflikte** fehlschlagen
+- **Mechanismus:** `vi.doMock('[module]')` in `beforeAll()` + **dynamische Imports**
+- **Edge-Cases:** **Bootstrap-Korruption**, **zirkuläre Dependencies**, **Electron-Prozess-Konflikte**
+
+### **Entscheidungsmatrix: Welche Strategie für welches Modul?**
+
+| Modul-Typ | API-Stil | Strategie | Begründung |
+|-----------|----------|-----------|------------|
+| **File System** | `fs.readFileSync()` | **Strategie 1** | Einfache Funktions-APIs |
+| **HTTP Client** | `axios.get()` | **Strategie 1** | Direkter Default-Export |
+| **Utilities** | `_.map()`, `uuid()` | **Strategie 1** | Zustandslose Funktionen |
+| **Database SDK** | `new Client()` → `client.db()` | **Strategie 2** | Instanz-verkettete APIs |
+| **Vector DB** | `new Pinecone()` → `index()` | **Strategie 2** | Komplexe Objekthierarchie |
+| **Cloud SDK** | `new S3()` → `bucket()` | **Strategie 2** | Service-Instanz-Pattern |
+| **Auth SDK** | `new Auth()` → `user()` | **Strategie 2** | Zustandsbehaftete Klassen |
+
+### **Schnell-Identifikation der richtigen Strategie:**
+
+#### **→ Strategie 1 Indikatoren:**
+```typescript
+// ✅ DIREKT erkennbar - einfache Module:
+import fs from 'fs'
+import axios from 'axios'
+import path from 'path'
+
+// Nutzung ohne `new` Keyword:
+fs.existsSync('/path/to/file')
+axios.get('https://api.example.com')
+path.join('/', 'users', 'profile')
+```
+
+#### **→ Strategie 2 Indikatoren:**
+```typescript
+// ✅ DIREKT erkennbar - komplexe SDK-Klassen:
+import { Pinecone, Index } from '@pinecone-database/pinecone'
+import { MongoClient } from 'mongodb'
+import { S3Client } from '@aws-sdk/client-s3'
+
+// Nutzung MIT `new` Keyword und Instanz-Ketten:
+const client = new Pinecone({ apiKey: 'key' })        // Constructor
+const index = client.index('my-index')                 // Instance method
+const namespace = index.namespace('production')        // Chained instances
+
+const mongo = new MongoClient(uri)                      // Constructor
+const database = mongo.db('myapp')                     // Instance method
+const users = database.collection('users')             // Chained instances
+```
 
 ---
 

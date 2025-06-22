@@ -4,10 +4,10 @@ Dieses Dokument dient als Referenz für die Auswahl der optimalen Mocking-Strate
 
 ## Prioritätsliste & Best Practices
 
-> **⚠️ WICHTIG:** Bevorzugen Sie **IMMER** Hoisted Mock Strategies. Runtime-Mocks sind eine leistungsstarke, aber sekundäre Option, die nur dann eingesetzt werden sollte, wenn es zu unauflösbaren Konflikten durch das Hoisting kommt (z.B. wenn eine andere Abhängigkeit das Originalmodul benötigt, bevor der Mock initialisiert werden kann).
+> **⚠️ WICHTIG:** Bevorzugen Sie **IMMER** Hoisted Mock Strategies. Runtime-Mocks sind eine leistungsstarke, aber sekundäre Option, die nur dann eingesetzt werden sollte, wenn es zu unauflösbaren Konflikten durch das Hoisting kommt.
 
 1.  🏆 **Hoisted (Kompilierzeit):** Die schnellste, einfachste und bevorzugte Methode für Standardfälle.
-2.  🥇 **Runtime (Laufzeit):** Die flexible Lösung für komplexe SDKs und Hoisting-Konflikte.
+2.  🚀 **Runtime (Laufzeit):** Die flexible Lösung für komplexe SDKs und kritische Hoisting-Konflikte.
 
 ---
 
@@ -18,89 +18,44 @@ Dies ist der "Gold-Standard" für das Mocking in Vitest. Er nutzt die Fähigkeit
 ### 🏆 **BEST PRACTICE: Automatisches Mocking via `__mocks__`-Verzeichnis**
 - **Referenz-Datei:** [`internal __mocks__/hoisted/vi.mocked.md`](./internal%20__mocks__/hoisted/vi.mocked.md)
 - **Warum optimal:** Beste Performance, einfachste Syntax, automatisches Hoisting, perfekte TypeScript-Typisierung in Kombination mit `vi.mocked()`.
-- **Ideal für:** Standard-Mocking, maximale Performance, einfache Test-Setups.
+- **Ideal für:** Standard-Mocking einfacher, zustandsloser Bibliotheken (`axios`, `lodash`).
 
-#### **Anwendungsfall: Das "Axios-Modell"**
-
-Dieser Ansatz ist ideal für einfache, weitgehend zustandslose Bibliotheken wie `axios`.
-
-#### **Konzept**
-
-1.  **Ort:** Ein `__mocks__`-Verzeichnis wird im Projekt-Root angelegt.
-2.  **Datei:** Innerhalb dieses Ordners wird eine Datei erstellt, die exakt so heißt wie das zu mockende NPM-Package (z.B. `__mocks__/axios.ts`).
-3.  **Aktivierung:** Ein einfacher Aufruf von `vi.mock('axios')` in einer Test-Setup-Datei oder direkt im Test-File genügt. Vitest findet und verwendet automatisch die Datei aus dem `__mocks__`-Verzeichnis.
-
-#### **Architektonische Merkmale**
-
-*   **Global & Implizit:** Der Mock wird systemweit für den Testlauf aktiviert. Es ist eine Form von "magischem" Hintergrundverhalten.
-*   **Zustandslos-Fokus:** Ideal, um einzelne, exportierte Funktionen (`get`, `post`) zu überschreiben.
-*   **Wenig Boilerplate:** Tests benötigen keinen expliziten Import oder Setup für den Mock, was den Testcode schlank hält.
-
-#### **Entscheidungskriterien**
-
-**Verwenden Sie diese Strategie, wenn ALLE folgenden Kriterien zutreffen:**
-
-*   **✅ Einfache API:** Das Modul exportiert hauptsächlich Funktionen oder ein Singleton-Objekt (z.B. `axios.get`).
-*   **✅ Zustandslos:** Die Funktionen haben keine internen Zustände, die sich über Aufrufe hinweg ändern müssen.
-*   **✅ Globale Mocks ausreichend:** Ein einziges, globales Mock-Verhalten ist für die Mehrheit der Tests ausreichend.
+#### **Konzept & Anwendungsfall: Das "Axios-Modell"**
+Ein `__mocks__`-Verzeichnis im Projekt-Root enthält eine Mock-Implementierung (z.B., `__mocks__/axios.ts`). Ein einfacher Aufruf von `vi.mock('axios')` aktiviert diesen Mock global und implizit für den gesamten Testlauf. Dies ist perfekt für Bibliotheken, bei denen einfache Funktionsüberschreibungen ausreichen.
 
 ---
 
 ## 🚀 Strategie 2: Runtime Mocking (Zur Laufzeit)
 
-Dieser Ansatz wird verwendet, wenn Hoisting zu Problemen führt oder wenn eine komplexe, instanzbasierte Bibliothek gemockt werden muss, die mehr Kontrolle erfordert als ein globaler Mock bieten kann.
+Dieser Ansatz wird verwendet, wenn Hoisting zu Problemen führt oder wenn eine komplexe, instanzbasierte Bibliothek gemockt werden muss, die mehr Kontrolle erfordert.
 
 ### 🥇 **#1 EMPFOHLEN: `vi.mock()` mit Async Callback & Mock-Factory**
 - **Referenz-Datei:** [`custom __mocks__/runtime/viMock-callback.md`](./custom%20__mocks__/runtime/viMock-callback.md)
-- **Warum besser:** Moderne Vitest-Best-Practice, umgeht Hoisting-Konflikte, automatisches Cleanup, exzellente TypeScript-Integration für komplexe Szenarien.
-- **Ideal für:** Konflikte mit anderen Dependencies (z.B. `fs`), komplexe Mock-Factories, dynamische Mocks.
+- **Warum besser:** Moderne Vitest-Best-Practice, die Hoisting-Konflikte umgeht, automatisches Cleanup bietet und eine exzellente TypeScript-Integration für komplexe Szenarien sicherstellt.
+- **Ideal für:** Komplexe, instanzbasierte SDKs (`@pinecone-database/pinecone`, `aws-sdk`) und die meisten Hoisting-Konflikte.
 
-### 🥈 **#2 ALTERNATIVE: `vi.doMock()`**
-- **Datei:** [`internal __mocks__/runtime/doMock.md`](./internal%20__mocks__/runtime/doMock.md)
-- **Warum zweitrangig:** Zwei-Schritt-Prozess, manuelles Cleanup erforderlich, mehr Boilerplate
-- **Ideal für:** Legacy-Code, spezielle Edge-Cases, wenn Callback-Approach nicht funktioniert
+#### **Konzept & Anwendungsfall: Das "Pinecone-Modell"**
+Für SDKs, die eine Instanziierungskette erfordern (`new SDK().feature().action()`), wird eine Mock-Factory in den Test-Dateien erstellt. Diese Factory liefert vollständig präparierte Mock-Instanzen. Die Aktivierung erfolgt explizit über `vi.mock('module', async () => { ... })`, was eine feingranulare Kontrolle pro Test-Suite ermöglicht und die Testlogik sauber vom Mock-Setup trennt.
 
-#### **Anwendungsfall: Das "Pinecone-Modell"**
+### 🥈 **#2 FALLBACK FÜR EDGE-CASES: `vi.doMock()`**
+- **Referenz-Datei:** [`internal __mocks__/runtime/doMock.md`](./internal%20__mocks__/runtime/doMock.md)
+- **Warum nur für Edge-Cases:** Erfordert manuelle, dynamische Imports und ist weniger elegant als der Callback-Ansatz.
+- **Ideal für:** **Kritische Hoisting-Konflikte**, bei denen eine Dependency (z.B. ein Test-Setup-Skript) eine andere Dependency (z.B. `fs`) lädt, die *vor* dem `vi.mock`-Callback ausgeführt werden muss. Wenn `vi.mock` also selbst für Runtime zu früh ist, ist `vi.doMock` die letzte Instanz.
 
-Dieser Ansatz ist eine bewusste, manuelle und kontrollierte Methode, die für komplexe, instanzbasierte SDKs wie `@pinecone-database/pinecone` entwickelt wurde.
-
-#### **Konzept**
-
-1.  **Die Herausforderung:** Komplexe SDKs erfordern oft eine Kette von Instanziierungen (`new Pinecone() -> index() -> namespace() -> upsert()`). Ein einfacher Mock scheitert hier.
-2.  **Die Lösung (Mock-Factory):**
-    *   **Ort:** Eine Factory-Klasse (z.B. `PineconeMockFactory`) wird in einem dedizierten Test-Verzeichnis angelegt (z.B. `test/mocks/`).
-    *   **Design:** Die Factory ist dafür verantwortlich, vollständig gemockte Instanzen (`mockPineconeInstance`, `mockIndexInstance`) zu erstellen und bereitzuhalten.
-    *   **Aktivierung:** Der Mock wird explizit und pro Test-Suite mit `vi.mock('@pinecone-database/pinecone', ...)` und einem **asynchronen Callback**, der die Factory importiert, aktiviert. Dies gibt volle Kontrolle und umgeht Hoisting-Probleme.
-
-#### **Architektonische Merkmale**
-
-*   **Explizit & Kontrolliert:** Der Mock wird sichtbar im Testcode importiert und konfiguriert.
-*   **Zustandsbehaftet & Isoliert:** Perfekt für instanzbasierte SDKs. Jeder Test kann durch `factory.resetAllMocks()` mit einem sauberen, definierten Zustand beginnen.
-*   **Flexibilität & Wartbarkeit:** Das Verhalten kann pro Testfall (`it`-Block) präzise angepasst werden.
-
-#### **Entscheidungskriterien**
-
-**Verwenden Sie diese Strategie, wenn EINES der folgenden Kriterien zutrifft:**
-
-*   **✅ Instanzbasiertes SDK:** Der Code verwendet `new SDK()` zur Initialisierung.
-*   **✅ Gekettete Methodenaufrufe:** Der Zugriff auf die Zielmethode erfordert mehrere vorherige Aufrufe, die jeweils neue Objekte zurückgeben.
-*   **✅ Hoisting-Konflikte:** Die Hoisted-Strategie führt zu Fehlern, weil andere Module das Original-Package benötigen.
-*   **✅ Detaillierte Test-Kontrolle:** Sie benötigen für verschiedene Tests unterschiedliche Rückgabewerte oder Fehlerszenarien derselben Methode.
+#### **Konzept & Anwendungsfall: Kritische Lade-Reihenfolge**
+`vi.doMock()` wird innerhalb eines Test-Hooks (z.B. `beforeAll`) aufgerufen. Dies garantiert, dass der Mock erst zur Laufzeit initialisiert wird. Der **entscheidende Nachteil**: Alle Module, die von dem gemockten Modul abhängen, **müssen zwingend *nach* dem `vi.doMock()`-Aufruf dynamisch mit `await import(...)` geladen werden.** Top-Level-Imports für diese Dateien sind hier nicht mehr möglich.
 
 ---
 
-### Direkter Vergleich & Fazit
+### Fazit für die Strategiewahl
 
-| Merkmal | Strategie 1 (Hoisted Mocking) | Strategie 2 (Runtime Mocking mit Factory) |
-| :--- | :--- | :--- |
-| **Aktivierung** | Implizit & zur Kompilierzeit | Explizit & zur Laufzeit |
-| **Kontrolle** | Global, geringe Flexibilität pro Test | Pro Test, maximale Flexibilität |
-| **Isolation** | Geringer, da globaler Zustand | Sehr hoch, da Mocks pro Test zurückgesetzt werden können |
-| **Ideal für...** | Einfache, zustandslose Funktionsbibliotheken | Komplexe, instanzbasierte SDKs & Hoisting-Konflikte |
-| **Gefahren** | Hoisting-Konflikte, schwer zu debuggende globale Zustände | Geringfügig mehr initialer Einrichtungsaufwand |
+| Merkmal | Strategie 1 (Hoisted) | Strategie 2 (Runtime / Factory) | Strategie 2 (Runtime / `doMock`) |
+| :--- | :--- | :--- | :--- |
+| **Aktivierung** | Implizit, Kompilierzeit | Explizit, Laufzeit (via Callback) | Explizit, Laufzeit (im Test-Hook) |
+| **Ideal für** | Einfache, zustandslose Module | Komplexe, instanzbasierte SDKs | Kritische Hoisting-Konflikte |
+| **Gefahren** | Hoisting-Konflikte | - | Manuelle dynamische Imports nötig |
 
-**Schlussfolgerung für AI-Agents:**
-Die Wahl der Mocking-Strategie ist eine architektonische Entscheidung.
-
-*   Beginnen Sie immer mit der **Hoisted-Strategie** für Einfachheit und Performance.
-*   Für das Testen von Interaktionen mit einem komplexen, instanzbasierten Dienst wie **Pinecone** oder bei Hoisting-Konflikten ist der Wechsel zur **Runtime-Strategie mit einer expliziten Mock-Factory** nicht nur sinnvoll, sondern **zwingend erforderlich**, um robuste und wartbare Tests zu gewährleisten.
+**Regel für autonome Agents:**
+1.  **Versuche immer Strategie 1 (Hoisted).**
+2.  Bei Komplexität oder Hoisting-Konflikten, **wechsle zu Strategie 2 (`vi.mock` mit Callback).**
+3.  Nur wenn selbst der `vi.mock`-Callback noch zu Konflikten führt, **nutze als letzte Option Strategie 2 mit `vi.doMock()`** und beachte die Regel der dynamischen Imports.

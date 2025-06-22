@@ -12,7 +12,7 @@ Wir verwenden eine externe Mock-Datei mit `vi.hoisted()`, um einen Mock vorzuber
 
 ```
 test/
-├── utils/mocks/SimpleCalculator/
+├──__mocks__/SimpleCalculator/
 │   └── SimpleCalculator.ts       # 🔑 ZENTRALE MOCK-DATEI
 └── unit/main/services/
     └── SimpleCalculator.test.ts  # 🏠 TESTDATEI
@@ -21,7 +21,7 @@ test/
 
 ---
 
-### 🔑 1. Zentrale Mock-Datei (`test/utils/mocks/SimpleCalculator/SimpleCalculator.ts`)
+### 🔑 1. Zentrale Mock-Datei (`test/__mocks__/SimpleCalculator/SimpleCalculator.ts`)
 
 Diese Datei enthält die gesamte Mock-Logik für unseren `SimpleCalculator`.
 
@@ -72,10 +72,10 @@ import { add } from '@main/services/SimpleCalculator.ts'
 // 🔥 KRITISCHER IMPORT: Diese Zeile aktiviert die Mock-Konfiguration.
 // Sie MUSS importiert werden, damit `vi.mock()` aus der zentralen Datei greift.
 // KEIN "from" verwenden, um den Hoisting-Mechanismus zu aktivieren!
-import '@test/utils/mocks/SimpleCalculator/SimpleCalculator.ts'
+import '@test/__mocks__/SimpleCalculator/SimpleCalculator.ts'
 
 // Regulärer Import, um auf die Mock-Instanz zuzugreifen und Assertions zu machen.
-import { calculatorMocks } from '@test/utils/mocks/SimpleCalculator/SimpleCalculator.ts'
+import { calculatorMocks } from '@test/__mocks__/SimpleCalculator/SimpleCalculator.ts'
 
 describe('SimpleCalculator', () => {
     it('sollte die gemockte add-Methode aufrufen', () => {
@@ -102,10 +102,10 @@ Der Mechanismus bleibt identisch: Der Import ohne `from` ist entscheidend, um di
 
 ```typescript
 // ✅ RICHTIG: Lädt und aktiviert die gehoisteten Mocks
-import '@test/utils/mocks/SimpleCalculator/SimpleCalculator.ts'
+import '@test/__mocks__/SimpleCalculator/SimpleCalculator.ts'
 
 // ❌ FALSCH: Die Mocks werden NICHT aktiviert
-import { calculatorMocks } from '@test/utils/mocks/SimpleCalculator/SimpleCalculator.ts'
+import { calculatorMocks } from '@test/__mocks__/SimpleCalculator/SimpleCalculator.ts'
 ```
 
 --- 

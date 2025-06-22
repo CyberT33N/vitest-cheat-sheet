@@ -11,7 +11,7 @@ vi.mock('axios', { spy: true })
 const axios = await import('axios')
 
 describe('UserService - Spy Variante (spy: true)', () => {
-  beforeEach(() => {
+  aftzerEach(() => {
     vi.clearAllMocks()
   })
 

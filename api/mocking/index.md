@@ -1,5 +1,7 @@
 
 ## Mocking
-- [mock](./mocking/mock.md)
 - [mocking-modules](./mocking/mocking-modules.md)
-- [vi-hoisted-async-mock-factories](./mocking/vi-hoisted-async-mock-factories.md)
+
+### API
+- [mock](./mocking/api/mock.md)
+- [vi-hoisted](./mocking/api/vi-hoisted.md)

@@ -254,20 +254,21 @@ function setupUnitTestEnvironment(): void {
 // Auto-execute on import
 setupUnitTestEnvironment()
 ```
+- Wenn du **NICHT WILLST**, dass vor jedem einzelnen **Test** durch die **Test-Setup-Datei** gemockt wird, **KANNST** du es natürlich auch nur spezifisch in der **Testdatei** aufrufen. `vi.mock('axios')`
+
+
+
 
 <br><br>
 
 
-
-`test.ts`
+test/utils/vitest/mocking.ts
 ```typescript
-import axios, { type AxiosResponse } from 'axios'
-import { describe, it, expect, vi, afterEach, MockInstance } from 'vitest'
-import { userService } from '../../src/userService.js'
+import { type MockInstance } from 'vitest'
 
 // 🚀 ULTIMATIVE LÖSUNG: DeepMocked Type mit direkter MockInstance Integration
 // MockInstance hat mockReturnValue, mockImplementation, mockRestore, etc.
-type DeepMocked<T> = {
+export type DeepMocked<T> = {
   readonly [K in keyof T]: T[K] extends (...args: infer A) => infer R
       ? MockInstance<(...args: A) => R> & ((...args: A) => R)
       : T[K] extends object
@@ -276,9 +277,19 @@ type DeepMocked<T> = {
 }
 
 // 🎯 HELPER FUNCTION: Semantisch klares Single-Cast ohne doppelte Assertion
-const createMockedModule = <T>(mockedModule: T): DeepMocked<T> => 
+export const createMockedModule = <T>(mockedModule: T): DeepMocked<T> => 
   mockedModule as DeepMocked<T>
+```
 
+<br><br>
+
+
+`test.ts`
+```typescript
+import axios, { type AxiosResponse } from 'axios'
+import { describe, it, expect, vi, afterEach, MockInstance } from 'vitest'
+import { userService } from '../../src/userService.js'
+import { createMockedModule } from '@test/utils/vitest/mocking.ts'
 
 describe('UserService', () => {
     // ✅ ENTERPRISE PATTERN: Deep mocking für vollständige Mock-Kontrolle  

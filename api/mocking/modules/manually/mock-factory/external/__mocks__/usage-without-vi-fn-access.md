@@ -15,6 +15,11 @@ export default {
 
 ```
 
+
+
+<br><br>
+
+userService.js:
 ```typescript
 import axios from 'axios'
 
@@ -39,6 +44,15 @@ export const userService = new UserService()
 
 ```
 
+
+
+
+
+
+<br><br>
+
+
+test.ts:
 ```typescript
 import { describe, it, expect, vi } from 'vitest'
 import { userService } from '../src/userService.js'

@@ -24,7 +24,7 @@ vi.mock('@google/genai');
 // 2. Erstelle eine Mock-Instanz mit den benötigten Methoden
 let mockEmbedContent: MockedFunction<(...args: readonly unknown[]) => Promise<unknown>>
 
-/ 3. Überschreibe die Implementierung des GoogleGenAI-Konstruktors
+// 3. Überschreibe die Implementierung des GoogleGenAI-Konstruktors
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 vi.mocked(GoogleGenAI).mockImplementation((): any => {
     // Diese Funktion wird jedes Mal ausgeführt, wenn `new GoogleGenAI()` aufgerufen wird

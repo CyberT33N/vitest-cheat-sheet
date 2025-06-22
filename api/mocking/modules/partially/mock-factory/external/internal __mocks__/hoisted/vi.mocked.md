@@ -288,7 +288,7 @@ export const createMockedModule = <T>(mockedModule: T): DeepMocked<T> =>
 ```typescript
 import axios, { type AxiosResponse } from 'axios'
 import { describe, it, expect, vi, afterEach, MockInstance } from 'vitest'
-import { userService } from '../../src/userService.js'
+import { userService } from '../../src/userService.ts'
 import { createMockedModule } from '@test/utils/vitest/mocking.ts'
 
 describe('UserService', () => {

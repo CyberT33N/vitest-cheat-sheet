@@ -26,21 +26,6 @@ test/
 ### 1. Mock-Factory Klasse (`test/__mocks__/@pinecone-database/pinecone.ts`)
 
 ```typescript
-/*
-███████████████████████████████████████████████████████████████████████████████
-██******************** PRESENTED BY t33n Software ***************************██
-██                                                                           ██
-██                  ████████╗██████╗ ██████╗ ███╗   ██╗                      ██
-██                  ╚══██╔══╝╚════██╗╚════██╗████╗  ██║                      ██
-██                     ██║    █████╔╝ █████╔╝██╔██╗ ██║                      ██
-██                     ██║    ╚═══██╗ ╚═══██╗██║╚██╗██║                      ██
-██                     ██║   ██████╔╝██████╔╝██║ ╚████║                      ██
-██                     ╚═╝   ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝                      ██
-██                                                                           ██
-███████████████████████████████████████████████████████████████████████████████
-███████████████████████████████████████████████████████████████████████████████
-*/
-
 // ==== Imports ====
 import {
     Index,
@@ -299,24 +284,19 @@ vi.mock('@pinecone-database/pinecone', async () => {
 
 describe('PineconeService() - Unit Tests', () => {
     let service: PineconeService
-    let mockIndexInstance: Index
-    
-    // Direkte Referenzen auf Mock-Funktionen (keine unbound methods)
-    let mockNamespaceFn: MockedFunction<(...args: readonly unknown[]) => unknown>
-    let mockUpsertFn: MockedFunction<(...args: readonly unknown[]) => Promise<unknown>>
-    // ...
 
+    const {
+        mockIndexInstance,
+        mockNamespaceFn,
+        mockUpsertFn
+    } = pineconeMockFactory
+   
     beforeEach(() => {
-        // Reset aller Mocks
-        pineconeMockFactory.resetAllMocks()
-        
-        // Direkte Zuweisung von der Factory (keine Getter-Funktionen nötig)
-        mockIndexInstance = pineconeMockFactory.mockIndexInstance
-        mockNamespaceFn = pineconeMockFactory.mockNamespaceFn
-        mockUpsertFn = pineconeMockFactory.mockUpsertFn
-        // ...
-        
         service = createStandardPineconeService()
+    })
+
+    afterEach(() => {
+        pineconeMockFactory.resetAllMocks()
     })
 
     describe('Constructor', () => {
@@ -413,18 +393,16 @@ vi.mock('@pinecone-database/pinecone', async () => {
 describe('YourService Tests', () => {
     let service: YourService
     
-    // 4. Mock-Referenzen definieren
-    let mockUpsertFn: MockedFunction<(...args: readonly unknown[]) => Promise<unknown>>
+    const {
+        mockUpsertFn
+    } = pineconeMockFactory
     
     beforeEach(() => {
-        // 5. Mocks zurücksetzen
-        pineconeMockFactory.resetAllMocks()
-        
-        // 6. Mock-Referenzen zuweisen
-        mockUpsertFn = pineconeMockFactory.mockUpsertFn
-        
-        // 7. Service erstellen
         service = new YourService()
+    })
+
+    afterEach(() => {
+        pineconeMockFactory.resetAllMocks()
     })
     
     it('should work correctly', () => {

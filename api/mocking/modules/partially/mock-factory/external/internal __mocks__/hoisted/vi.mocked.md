@@ -7,15 +7,6 @@
 ```typescript
 /* eslint-disable func-names */
 /* eslint-disable @typescript-eslint/prefer-readonly-parameter-types */
-/*
- ▄▄▄·▄▄▄  ▪   ▌ ▐· ▄▄▄· ·▄▄▄▄  ▄▄▄ . ▐ ▄ ▄▄▄▄▄
-▐█ ▄█▀▄ █·██ ▪█·█▌▐█ ▀█ ██▪ ██ ▀▄.▀·•█▌▐█•██  
- ██▀·▐▀▀▄ ▐█·▐█▐█•▄█▀▀█ ▐█· ▐█▌▐▀▀▪▄▐█▐▐▌ ▐█.▪
-▐█▪·•▐█•█▌▐█▌ ███ ▐█ ▪▐▌██. ██ ▐█▄▄▌██▐█▌ ▐█▌·
-.▀   .▀  ▀▀▀▀. ▀   ▀  ▀ ▀▀▀▀▀•  ▀▀▀ ▀▀ █▪ ▀▀▀ 
- * © privadent GmbH. All rights reserved.  
- * Unauthorized copying, distribution, or modification of this software is strictly prohibited.  
-*/
 
 // ==== DEPENDENCIES ====
 import type { AxiosRequestConfig, HttpStatusCode } from 'axios'

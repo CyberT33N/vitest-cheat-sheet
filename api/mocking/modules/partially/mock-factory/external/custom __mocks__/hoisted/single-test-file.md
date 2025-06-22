@@ -72,9 +72,11 @@ import { add } from '@main/services/SimpleCalculator.ts'
 // 🔥 KRITISCHER IMPORT: Diese Zeile aktiviert die Mock-Konfiguration.
 // Sie MUSS importiert werden, damit `vi.mock()` aus der zentralen Datei greift.
 // KEIN "from" verwenden, um den Hoisting-Mechanismus zu aktivieren!
+// eslint-disable-next-line import/no-duplicates, no-duplicate-imports
 import '@test/__mocks__/SimpleCalculator/SimpleCalculator.ts'
 
 // Regulärer Import, um auf die Mock-Instanz zuzugreifen und Assertions zu machen.
+// eslint-disable-next-line import/no-duplicates, no-duplicate-imports
 import { calculatorMocks } from '@test/__mocks__/SimpleCalculator/SimpleCalculator.ts'
 
 describe('SimpleCalculator', () => {

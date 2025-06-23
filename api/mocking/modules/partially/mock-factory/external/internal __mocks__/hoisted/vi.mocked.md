@@ -1,10 +1,37 @@
-# Hoisted
-- Das nachfolgende Beispiel mockt **Axios** in der **Test-Setup-Datei**, welche mit **Vitest** vor den Tests geladen wird. Das Problem ist, dass es Komplikationen geben kann, wie z.B. wenn **FS** benutzt wird und innerhalb vom Code es an irgendeiner Stelle referenziert wird, weil durch den **Hoisted-Mechanismus** das Modul zu diesem Zeitpunkt schon überschrieben wird und das Modul dann nicht mehr verfügbar ist. Das bedeutet, diese Technik **MUSS** mit Bedacht benutzt werden, da zu diesem Zeitpunkt das Modul komplett überschrieben wird.
+# Enterprise Mock Pattern - Universelle Mock-Architektur
 
+Das **Enterprise Mock Pattern** ist der **empfohlene Standard** für alle Mock-Dateien in Vitest-Projekten. Dieses Pattern bietet universelle Kompatibilität für verschiedene Import-Stile und vermeidet die Probleme des hoisted-Patterns.
+
+## Warum Enterprise Pattern?
+
+- ✅ **Universelle Kompatibilität:** Funktioniert für beide Import-Stile (`default` und `named exports`)
+- ✅ **Keine Hoisting-Probleme:** Vermeidet Race Conditions und Module-Überschreibungen
+- ✅ **Einheitliche Architektur:** Ein Pattern für alle Mock-Dateien
+- ✅ **Bessere Typsicherheit:** Vollständige TypeScript-Unterstützung
+- ✅ **Einfache Maintenance:** Klare, vorhersagbare Struktur
+
+## Pattern-Struktur
+
+```typescript
+// 1. Named exports für alle Mock-Funktionen
+export const functionName = vi.fn(/* implementation */)
+
+// 2. Default export mit allen named exports für Kompatibilität
+const mockFactory = {
+    ...actualModule,
+    functionName,
+    // ... alle anderen Funktionen
+}
+
+export default mockFactory
+```
+
+## Beispiel: Axios Mock
 
 `__mocks__/axios.ts`
 
 ```typescript
+/* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable func-names */
 /* eslint-disable @typescript-eslint/prefer-readonly-parameter-types */
 
@@ -31,155 +58,175 @@ const createMockResponse = <T>(data: T, config?: Readonly<AxiosRequestConfig>): 
         request: {}
     })
 
-// Mock the default axios instance
+// ✅ ENTERPRISE PATTERN: Named exports für alle Mock-Funktionen
+export const get = vi.fn(async function get(
+    url: string, config?: AxiosRequestConfig
+) {
+    console.info('axios.get called:', url)
+    return Promise.resolve(createMockResponse({
+        success: true,
+        data: 'mockEncryptedData'
+    }, config))
+})
+
+export const post = vi.fn(async function post(
+    url: string, data?: unknown, config?: AxiosRequestConfig
+) {
+    console.info('axios.post called:', url)
+    
+    if (url.includes('/api/partner/practice/finding')) {
+        return Promise.resolve(createMockResponse({
+            success: true,
+            finding: 'mockFinding'
+        }, config))
+    }
+
+    if (url.includes('/api/partner/practice/customer')) {
+        return Promise.resolve(createMockResponse({
+            success: true,
+            customer: 'mockCustomer'
+        }, config))
+    }
+
+    if (url.includes('/api/login-privyou')) {
+        return Promise.resolve(createMockResponse({
+            success: true,
+            user: { name: 'testuser', groups: ['testgroup'] },
+            token: 'testtoken'
+        }, config))
+    }
+
+    return Promise.resolve(createMockResponse({
+        success: true,
+        data: 'mockPostData'
+    }, config))
+})
+
+export const put = vi.fn(async function put(
+    url: string, data?: unknown, config?: AxiosRequestConfig
+) {
+    console.info('axios.put called:', url)
+    return Promise.resolve(createMockResponse({
+        success: true,
+        updated: true
+    }, config))
+})
+
+export const patch = vi.fn(async function patch(
+    url: string, data?: unknown, config?: AxiosRequestConfig
+) {
+    console.info('axios.patch called:', url)
+    return Promise.resolve(createMockResponse({
+        success: true,
+        patched: true
+    }, config))
+})
+
+export const deleteMethod = vi.fn(async function deleteMethod(
+    url: string, config?: AxiosRequestConfig
+) {
+    console.info('axios.delete called:', url)
+    return Promise.resolve(createMockResponse({
+        success: true,
+        deleted: true
+    }, config))
+})
+
+export const head = vi.fn(async function head(
+    url: string, config?: AxiosRequestConfig
+) {
+    console.info('axios.head called:', url)
+    return Promise.resolve(createMockResponse({}, config))
+})
+
+export const options = vi.fn(async function options(
+    url: string, config?: AxiosRequestConfig
+) {
+    console.info('axios.options called:', url)
+    return Promise.resolve(createMockResponse({}, config))
+})
+
+export const request = vi.fn(async function request(config: AxiosRequestConfig) {
+    console.info('axios.request called:', config.url)
+    return Promise.resolve(createMockResponse({
+        success: true,
+        data: 'mockRequestData'
+    }, config))
+})
+
+export const create = vi.fn(function create(config?: AxiosRequestConfig) {
+    console.info('axios.create called with config:', config)
+    return {
+        ...mockedAxios,
+        defaults: { ...actualAxios.default.defaults, ...config }
+    }
+})
+
+// ✅ ENTERPRISE PATTERN: Default export mit allen Named exports für Kompatibilität
 const mockedAxios = {
     ...actualAxios.default,
-    get: vi.fn(async function get(
-        this: typeof actualAxios.default, url: string, config?: AxiosRequestConfig
-    ) {
-        // if (url.includes('/api/partner/privyou-tool/version')) {
-        //     return createMockResponse({
-        //         success: true,
-        //         version: 31
-        //     }, config)
-        // }
+    
+    // Include all named exports in the default export for compatibility
+    get,
+    post,
+    put,
+    patch,
+    delete: deleteMethod, // 'delete' ist ein reserved keyword, daher alias
+    head,
+    options,
+    request,
+    create,
 
-        // if (url.includes('/api/partner/privyou-tool/config')) {
-        //     return createMockResponse({
-        //         success: true,
-        //         pvsConfig: {
-        //             updatedAt: new Date().toISOString()
-        //         }
-        //     }, config)
-        // }
+    // Interceptors (simplified)
+    interceptors: {
+        request: {
+            use: vi.fn(() => 0),
+            eject: vi.fn(),
+            clear: vi.fn(),
+            forEach: vi.fn()
+        },
+        response: {
+            use: vi.fn(() => 0),
+            eject: vi.fn(),
+            clear: vi.fn(),
+            forEach: vi.fn()
+        }
+    },
 
-        // if (url.includes('/api/partner/practice/customers')) {
-        //     return createMockResponse({
-        //         success: true,
-        //         data: 'mockEncryptedData'
-        //     }, config)
-        // }
+    // Default configuration
+    defaults: {
+        ...actualAxios.default.defaults,
+        timeout: 0,
+        withCredentials: false,
+        responseType: 'json' as const,
+        maxContentLength: -1,
+        maxBodyLength: -1,
+        maxRedirects: 21
+    },
 
-        // const urlWithBaseUrl = `${this.defaults.baseURL ?? ''}${url}`
-        // return Promise.resolve(actualAxios.default.get(urlWithBaseUrl, config))
-
-        return createMockResponse({
-            success: true,
-            data: 'mockEncryptedData'
-        }, config)
+    // Utility methods
+    getUri: vi.fn((config?: AxiosRequestConfig): string => {
+        return config?.url ?? ''
     }),
 
-    post: vi.fn(async function post(
-        this: typeof actualAxios.default, url: string, data?: unknown, config?: AxiosRequestConfig
-    ) {
-        if (url.includes('/api/partner/practice/finding')) {
-            return Promise.resolve(createMockResponse({
-                success: true,
-                finding: 'mockFinding'
-            }, config))
-        }
-
-        if (url.includes('/api/partner/practice/customer')) {
-            return Promise.resolve(createMockResponse({
-                success: true,
-                finding: 'mockFinding'
-            }, config))
-        }
-    
-        if (url.includes('/api/login-privyou')) {
-            return Promise.resolve(createMockResponse({
-                success: true,
-                user: { name: 'testuser', groups: ['testgroup'] },
-                token: 'testtoken'
-            }, config))
-        }
-    
-        const urlWithBaseUrl = `${this.defaults.baseURL ?? ''}${url}`
-        return Promise.resolve(actualAxios.default.post(urlWithBaseUrl, data, config))
-    })
-
-    // put: vi.fn(async(url: string, data?: unknown, config?: AxiosRequestConfig) => {
-    //     return Promise.resolve(createMockResponse({}, config))
-    // }),
-
-    // patch: vi.fn(async(url: string, data?: unknown, config?: AxiosRequestConfig) => {
-    //     return Promise.resolve(createMockResponse({}, config))
-    // }),
-
-    // delete: vi.fn(async(url: string, config?: AxiosRequestConfig) => {
-    //     return Promise.resolve(createMockResponse({}, config))
-    // }),
-
-    // head: vi.fn(async(url: string, config?: AxiosRequestConfig) => {
-    //     return Promise.resolve(createMockResponse({}, config))
-    // }),
-
-    // options: vi.fn(async(url: string, config?: AxiosRequestConfig) => {
-    //     return Promise.resolve(createMockResponse({}, config))
-    // }),
-
-    // // Generic request method
-    // request: vi.fn(async(config: AxiosRequestConfig) => {
-    //     return Promise.resolve(createMockResponse({}, config))
-    // }),
-
-    // // Convenience methods for creating new instances
-    // create: vi.fn((config?: AxiosRequestConfig) => ({
-    //     ...mockedAxios,
-    //     defaults: { ...actualAxios.default.defaults, ...config }
-    // })),
-
-    // // Interceptors (simplified)
-    // interceptors: {
-    //     request: {
-    //         use: vi.fn(() => 0),
-    //         eject: vi.fn(),
-    //         clear: vi.fn(),
-    //         forEach: vi.fn()
-    //     },
-    //     response: {
-    //         use: vi.fn(() => 0),
-    //         eject: vi.fn(),
-    //         clear: vi.fn(),
-    //         forEach: vi.fn()
-    //     }
-    // },
-
-    // // Default configuration
-    // defaults: {
-    //     ...actualAxios.default.defaults,
-    //     timeout: 0,
-    //     withCredentials: false,
-    //     responseType: 'json' as const,
-    //     maxContentLength: -1,
-    //     maxBodyLength: -1,
-    //     maxRedirects: 21
-    // },
-
-    // // Utility methods
-    // getUri: vi.fn((config?: AxiosRequestConfig): string => {
-    //     return config?.url ?? ''
-    // }),
-
-    // // Static methods from axios module
-    // isCancel: actualAxios.isCancel,
-    // isAxiosError: actualAxios.isAxiosError,
-    // toFormData: actualAxios.toFormData,
-    // formToJSON: actualAxios.formToJSON,
-    // all: vi.fn(async <T>(values: (T | Promise<T>)[]): Promise<T[]> => {
-    //     return Promise.all(values)
-    // }),
-    // spread: actualAxios.spread,
-    // AxiosError: actualAxios.AxiosError,
-    // AxiosHeaders: actualAxios.AxiosHeaders,
-    // HttpStatusCode: actualAxios.HttpStatusCode
+    // Static methods from axios module
+    isCancel: actualAxios.isCancel,
+    isAxiosError: actualAxios.isAxiosError,
+    toFormData: actualAxios.toFormData,
+    formToJSON: actualAxios.formToJSON,
+    all: vi.fn(async <T>(values: (T | Promise<T>)[]): Promise<T[]> => {
+        return Promise.all(values)
+    }),
+    spread: actualAxios.spread,
+    AxiosError: actualAxios.AxiosError,
+    AxiosHeaders: actualAxios.AxiosHeaders,
+    HttpStatusCode: actualAxios.HttpStatusCode
 }
 
 export default mockedAxios
 ```
 
-
-<br><br>
+## Service Beispiel
 
 `userService.ts`
 
@@ -204,17 +251,9 @@ export class UserService {
 }
 
 export const userService = new UserService()
-
 ```
 
-
-
-
-
-
-
-
-<br><br>
+## Test Setup (vereinfacht)
 
 `test/unit/test-setup.ts`
 
@@ -236,8 +275,8 @@ function setupUnitTestEnvironment(): void {
     
     vi.stubGlobal('UNIT_TEST_MODE', true)
 
-    // Mock Axios for HTTP requests (__mocks__/axios.ts)
     vi.mock('axios')
+    vi.mock('windows-drive')
 
     console.info('✅ Unit test environment successfully initialized')
 }
@@ -249,11 +288,10 @@ setupUnitTestEnvironment()
 
 
 
+## Vitest Helper (unverändert)
 
-<br><br>
+`test/utils/vitest/ts-helper.ts`
 
-
-test/utils/vitest/mocking.ts
 ```typescript
 import { type MockInstance } from 'vitest'
 
@@ -272,23 +310,23 @@ export const createMockedModule = <T>(mockedModule: T): DeepMocked<T> =>
   mockedModule as DeepMocked<T>
 ```
 
-<br><br>
-
+## Test Implementation
 
 `test.ts`
+
 ```typescript
 import axios, { type AxiosResponse } from 'axios'
-import { describe, it, expect, vi, afterEach, MockInstance } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { userService } from '../../src/userService.ts'
-import { createMockedModule } from '@test/utils/vitest/mocking.ts'
+import { createMockedModule, type DeepMocked } from '@test/utils/vitest/ts-helper.ts'
 
 describe('UserService', () => {
-    // ✅ ENTERPRISE PATTERN: Deep mocking für vollständige Mock-Kontrolle  
+    // ✅ Deep mocking für vollständige Mock-Kontrolle  
     const viMockedAxios = vi.mocked(axios, { deep: true })
     const mockedAxios = createMockedModule(viMockedAxios)
 
     afterEach(() => {
-    // Mock ist bereits korrekt typisiert - kein erneutes Assignment nötig
+        // Mock ist bereits korrekt typisiert - kein erneutes Assignment nötig
         vi.clearAllMocks()
     })
 
@@ -307,7 +345,6 @@ describe('UserService', () => {
     })
 
     it('sollte einen Benutzer abrufen (CUSTOM INLINE MOCK)', async() => {
-    // 🚀 ENTERPRISE PATTERN: Typsichere Mock-Überschreibung ohne ANY-Casting
         const customResponse: AxiosResponse = {
             data: {
                 success: true,
@@ -341,12 +378,10 @@ describe('UserService', () => {
 })
 ```
 
+## Vorteile des Enterprise Patterns
 
-
-
-
-
-
-
-
-
+1. **Universelle Kompatibilität:** Sowohl `import axios from 'axios'` als auch `import { get } from 'axios'` funktionieren
+2. **Hoisting-sicher:** Keine Race Conditions oder Module-Überschreibungsprobleme
+3. **Einheitliche Architektur:** Ein Pattern für alle Mock-Szenarien
+4. **Bessere Developer Experience:** Vollständige IntelliSense und Typsicherheit
+5. **Einfache Maintenance:** Klare Struktur und vorhersagbares Verhalten

@@ -141,36 +141,36 @@ Für Szenarien mit `vi.doMock()` oder anderen Runtime-Imports, wo kein statische
 ```typescript
 import { describe, it, expect, vi, beforeEach, type MockInstance } from 'vitest'
 
-describe('DampsoftService', () => {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    let DampsoftService: typeof import('@/main/services/dampsoft/DampsoftService.ts').DampsoftService
-    let service: InstanceType<typeof DampsoftService>
+    describe('DampsoftService', () => {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        let DampsoftService: typeof import('@/main/services/dampsoft/DampsoftService.ts').DampsoftService
+        let service: InstanceType<typeof DampsoftService>
 
-    beforeEach(async() => {
-        ;({ DampsoftService } = await import('@/main/services/dampsoft/DampsoftService.ts'))
-        service = new DampsoftService()
-    })
-
-    describe('xxx', () => {
-        let spyOnGetPrax: MockInstance
-
-        beforeEach(() => {
-                type ExtendedServiceType = InstanceType<typeof DampsoftService> & { 
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    _getPrax: () => string[] 
-                }
-
-                spyOnGetPrax = vi.spyOn<ExtendedServiceType, '_getPrax'>(
-                    DampsoftService.prototype as ExtendedServiceType,
-                    '_getPrax'
-                ).mockReturnValue(['PRAX1', 'PRAX2'])
+        beforeEach(async() => {
+            ;({ DampsoftService } = await import('@/main/services/dampsoft/DampsoftService.ts'))
+            service = new DampsoftService()
         })
 
-        it('sollte private Methode korrekt mocken', () => {
-            expect(spyOnGetPrax).toHaveBeenCalled()
+        describe('xxx', () => {
+            let spyOnGetPrax: MockInstance
+
+            beforeEach(() => {
+                    type ExtendedServiceType = InstanceType<typeof DampsoftService> & { 
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        _getPrax: () => string[] 
+                    }
+
+                    spyOnGetPrax = vi.spyOn<ExtendedServiceType, '_getPrax'>(
+                        DampsoftService.prototype as ExtendedServiceType,
+                        '_getPrax'
+                    ).mockReturnValue(['PRAX1', 'PRAX2'])
+            })
+
+            it('sollte private Methode korrekt mocken', () => {
+                expect(spyOnGetPrax).toHaveBeenCalled()
+            })
         })
     })
-})
 ```
 
 

@@ -91,10 +91,12 @@ export default tseslint.config(
 )
 ```
 
-Option1 - `as keyof` :
+Option1 - `as keyof` (Statischer Import erforderlich) :
 
 ```typescript
 import { describe, it, expect, vi, beforeEach, type MockedObject, type MockedFunction, MockInstance } from 'vitest'
+// ✅ WICHTIG: Statischer Import der Service-Klasse erforderlich für 'as keyof'
+import { DampsoftService } from '@/main/services/dampsoft/DampsoftService.ts'
 
 describe('getOrCreateIndex()', () => {
     describe('✅ Positive Tests', () => {
@@ -127,6 +129,45 @@ describe('getOrCreateIndex()', () => {
             expect(createIndexAndWaitSpy).toHaveBeenCalledWith(indexOptions)
             expect(createIndexAndWaitSpy).toHaveBeenCalledTimes(1)
             expect(result).toBeDefined()
+        })
+    })
+})
+```
+
+**Alternative für Edge-Cases: Runtime-Import mit erweiterten Typen**
+
+Für Szenarien mit `vi.doMock()` oder anderen Runtime-Imports, wo kein statischer Import möglich ist:
+
+```typescript
+import { describe, it, expect, vi, beforeEach, type MockInstance } from 'vitest'
+
+describe('DampsoftService', () => {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    let DampsoftService: typeof import('@/main/services/dampsoft/DampsoftService.ts').DampsoftService
+    let service: InstanceType<typeof DampsoftService>
+
+    beforeEach(async() => {
+        ;({ DampsoftService } = await import('@/main/services/dampsoft/DampsoftService.ts'))
+        service = new DampsoftService()
+    })
+
+    describe('xxx', () => {
+        let spyOnGetPrax: MockInstance
+
+        beforeEach(() => {
+                type ExtendedServiceType = InstanceType<typeof DampsoftService> & { 
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    _getPrax: () => string[] 
+                }
+
+                spyOnGetPrax = vi.spyOn<ExtendedServiceType, '_getPrax'>(
+                    DampsoftService.prototype as ExtendedServiceType,
+                    '_getPrax'
+                ).mockReturnValue(['PRAX1', 'PRAX2'])
+        })
+
+        it('sollte private Methode korrekt mocken', () => {
+            expect(spyOnGetPrax).toHaveBeenCalled()
         })
     })
 })

@@ -252,7 +252,8 @@ describe('UserService', () => {
     // ✅ PERFEKTE LÖSUNG: Rekursiver Utility Type ersetzt ALLE Methoden
     // Funktioniert mit JEDEM Package - axios, fs, path, etc.
     let mockedAxios: DeepMocked<typeof axios>
-    let userService: InstanceType<typeof import('@/userService.ts').userService>
+    let UserService: typeof import('@/main/services/dampsoft/DampsoftService.ts')
+    let userService: InstanceType<typeof UserService.userService>
 
     beforeAll(async() => {
         // ✅ ZURÜCK ZUR FUNKTIONIERENDEN LÖSUNG: vi.doMock() + dynamische Imports

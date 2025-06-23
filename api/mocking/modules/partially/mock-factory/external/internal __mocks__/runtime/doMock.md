@@ -252,7 +252,7 @@ describe('UserService', () => {
     // ✅ PERFEKTE LÖSUNG: Rekursiver Utility Type ersetzt ALLE Methoden
     // Funktioniert mit JEDEM Package - axios, fs, path, etc.
     let mockedAxios: DeepMocked<typeof axios>
-    let userService: { getUser: (id: number) => Promise<{ success: boolean; data: string }> }
+    let userService: InstanceType<typeof import('@/userService.ts').userService>
 
     beforeAll(async() => {
         // ✅ ZURÜCK ZUR FUNKTIONIERENDEN LÖSUNG: vi.doMock() + dynamische Imports
@@ -264,7 +264,7 @@ describe('UserService', () => {
         mockedAxios = createMockedModule(viMockedAxios)
         
         // userService NACH axios-Mock importieren
-        const userServiceModule = await import('../../src/userService.ts')
+        const userServiceModule = await import('@/userService.ts')
         userService = userServiceModule.userService
     })
 
@@ -297,7 +297,7 @@ describe('UserService', () => {
 })
 
 ```
-
+- Es ist **SEHR WICHTIG** zu beachten, dass bei dieser Variante **KEIN** statischer Import oben vorhanden sein **DARF**. Sobald wir anfangen, den **Service** zu importieren, den wir testen **WOLLEN**, in dem Fall den **User Service**, würden wir ein **PROBLEM** kriegen und der **Mod** würde nicht funktionieren.
 
 
 

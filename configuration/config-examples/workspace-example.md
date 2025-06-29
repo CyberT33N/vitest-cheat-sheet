@@ -505,7 +505,7 @@ const cfg: ViteUserConfig = defineConfig({
               * Specifies the files to include for type checking.
               * @type {Array<string>}
               */
-            include: ['test/integration/**/*rest.test.ts']
+            include: ['test/integration/**/*rest.test-d.ts']
         }
     }
 })
@@ -572,7 +572,7 @@ const cfg: ViteUserConfig = defineConfig({
         * Specifies the files to include for type checking.
         * @type {Array<string>}
         */
-      include: ['test/unit/**/*.test.ts']
+      include: ['test/unit/**/*.test-d.ts']
     },
     /**
       * Specifies the coverage configuration.

@@ -26,8 +26,8 @@ all other options that don't affect test runners
 
 ```json
 "scripts": {
-  "test": "vitest --typecheck --coverage",
-  "test:watch": "vitest --typecheck --watch",
+  "test": "vitest",
+  "test:watch": "vitest --watch",
   "test:integration": "vitest run --project integration",
   "test:unit": "vitest run --project unit",
   "test:production": "vitest run --project production"
@@ -579,6 +579,12 @@ const cfg: ViteUserConfig = defineConfig({
       * @type {Object}
       */
     coverage: {
+      /**
+        * Specifies whether coverage is enabled.
+        * @type {boolean}
+        */
+            enabled: true,
+            /**
       /**
         * Specifies the coverage provider to use.
         * @type {string}

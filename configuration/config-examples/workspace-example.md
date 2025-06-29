@@ -26,11 +26,15 @@ all other options that don't affect test runners
 
 ```json
 "scripts": {
-  "test": "vitest",
-  "test:watch": "vitest --watch",
-  "test:integration": "vitest run --project integration",
-  "test:unit": "vitest run --project unit",
-  "test:production": "vitest run --project production"
+    "test:all": "vitest",
+    "test:only:linux": "bash test-only.sh",
+    "test:only:windows": "powershell -ExecutionPolicy Bypass -File test-only.ps1",
+    "test:watch": "vitest --watch",
+    "test:integration": "vitest run --project integration",
+    "test:unit": "vitest run --project unit",
+    "test:regression": "vitest run --project regression",
+    "test:production": "vitest run --project production",
+    "test:external": "vitest run --project external",
 }
 ```
 
@@ -618,6 +622,8 @@ export default mergedCfg
 
 
 # vitest.workspace.ts
+- `defineWorkspace` deprecated after version 3.2
+  - Use projects in vitest.config instead
 
 <details><summary>Click to expand..</summary>
 
@@ -854,7 +860,19 @@ const cfg: ViteUserConfig = defineConfig({
         * @type {Array<string>}
         */
       reporter: ['text', 'json', 'html']
-    }
+    },
+
+     /**
+      * Project configurations to manage different test types.
+      * Replaces the deprecated workspace configuration.
+      * @type {Array<string>}
+      */
+        projects: [
+            './vitest.unit.config.ts',
+            './vitest.integration.config.ts',
+            './vitest.regression.config.ts',
+            './vitest.external.config.ts'
+        ]
   }
 })
 

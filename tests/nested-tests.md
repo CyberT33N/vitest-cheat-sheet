@@ -6,8 +6,9 @@ Diese Regel definiert eine **zentrale, typisierte Test-Context-Management-Archit
 
 ### Komponenten
 1. **TestContextManager** - Zentrale Singleton-Registry für Test-Kontexte
-2. **Parent Test File** - Haupttest-Datei mit Kontext-Setup und Mock-Factories
-3. **Sub Test Files** - Modulare Test-Dateien die den Kontext konsumieren
+2. **Shared Types File** - Zentrale Types und Constants Datei
+3. **Parent Test File** - Haupttest-Datei mit Kontext-Setup und Mock-Factories
+4. **Sub Test Files** - Modulare Test-Dateien die den Kontext konsumieren
 
 ---
 
@@ -207,7 +208,66 @@ export type TestContextKey = string
 
 ---
 
-## 🎯 2. Parent Test File Template (Enterprise Architecture - **BEVORZUGT**)
+## 🎯 2. Shared Types File Template
+
+**Pfad:** `test/unit/main/services/{ServiceName}/{ServiceName}/shared.ts`
+
+```typescript
+import { vi } from 'vitest'
+import { YourServiceClass } from '@main/services/path/to/YourServiceClass.ts'
+import { YourDependencyClass } from '@main/models/path/to/YourDependencyClass.ts'
+import { YourModel, type IYourModel } from '@main/models/path/to/YourModel.ts'
+// Import all your types, interfaces, models etc.
+
+// Import Mock Factories
+import { yourServiceMockFactory } from '@test/utils/mocks/services/path/to/YourServiceMockFactory.ts'
+import { yourDependencyMockFactory } from '@test/utils/mocks/models/path/to/YourDependencyMockFactory.ts'
+
+// Import Test Environment Setup (if applicable)
+import { type IYourTestEnvironment } from '@test/utils/test-environment/setup/index.ts'
+
+// Import Fixture Bundle Types
+import {
+    type IYourBundleAType,
+    type IYourBundleBType,
+    type IYourFixtureAType,
+    type IYourFixtureBType
+} from '@test/utils/fixtures/factory/bundles/YourBundles.ts'
+
+// 🎯 **Define context keys for this specific service (project-specific)**
+export const CONTEXT_KEYS = {
+    yourServiceName: 'YourServiceName' // Replace with actual service name
+} as const
+
+// Export ITestContext Interface
+export interface ITestContext {
+    service: InstanceType<typeof YourServiceClass>
+    testEnv: IYourTestEnvironment
+    testEnvironments: IYourTestEnvironment[]
+    
+    // Mock Factories
+    yourServiceMockFactory: typeof yourServiceMockFactory
+    yourDependencyMockFactory: typeof yourDependencyMockFactory
+    mockYourModel: ReturnType<typeof vi.mocked<typeof YourModel>>
+    
+    // Fixture Bundles (if applicable)
+    bundleA: IYourBundleAType
+    bundleB: IYourBundleBType
+    
+    // Individual Test Fixtures
+    testFixtureA: IYourFixtureAType
+    testFixtureB: IYourFixtureBType
+    testDependencyMock: IYourDependencyType
+    
+    // Computed Test Data
+    computedTestDataA: IComputedDataType
+    computedTestDataB: IComputedDataType
+}
+```
+
+---
+
+## 🎯 3. Parent Test File Template (Enterprise Architecture - **BEVORZUGT**)
 
 **Pfad:** `test/unit/main/services/{ServiceName}/{ServiceName}.test.ts`
 
@@ -219,6 +279,7 @@ import {
 } from 'vitest'
 import { YourServiceClass } from '@main/services/path/to/YourServiceClass.ts'
 import { YourDependencyClass } from '@main/models/path/to/YourDependencyClass.ts'
+import { YourModel } from '@main/models/path/to/YourModel.ts'
 // Import all your types, interfaces, models etc.
 
 // Import Mock Factories
@@ -237,21 +298,18 @@ import {
 
 // Import Test Environment Setup (if applicable)
 import { 
-    createQuickTestEnvironment, 
-    type IYourTestEnvironment
+    createQuickTestEnvironment
 } from '@test/utils/test-environment/setup/index.ts'
 
 // Import Module Functions - Now WITHOUT function parameters!
 import { createTestContextManager } from '@test/utils/TestContextManager.ts'
 
+// Import shared types and constants
+import { CONTEXT_KEYS, type ITestContext } from './YourServiceClass/shared.ts'
+
 import { runModuleATests } from './YourServiceClass/moduleA.ts'
 import { runModuleBTests } from './YourServiceClass/moduleB.ts'
 import { runModuleCTests } from './YourServiceClass/moduleC.ts'
-
-// 🎯 **Define context keys for this specific service (project-specific)**
-export const CONTEXT_KEYS = {
-    yourServiceName: 'YourServiceName' // Replace with actual service name
-} as const
 
 // ==== MOCKS ====
 vi.mock('@main/services/path/to/YourDependencyService.ts', async() => {
@@ -283,31 +341,6 @@ vi.mock('@main/models/path/to/YourModel.ts', async() => {
         YourModel: mockedYourModel
     }
 })
-
-// Export ITestContext Interface
-export interface ITestContext {
-    service: InstanceType<typeof YourServiceClass>
-    testEnv: IYourTestEnvironment
-    testEnvironments: IYourTestEnvironment[]
-    
-    // Mock Factories
-    yourServiceMockFactory: typeof yourServiceMockFactory
-    yourDependencyMockFactory: typeof yourDependencyMockFactory
-    mockYourModel: ReturnType<typeof vi.mocked<typeof YourModel>>
-    
-    // Fixture Bundles (if applicable)
-    bundleA: IYourBundleAType
-    bundleB: IYourBundleBType
-    
-    // Individual Test Fixtures
-    testFixtureA: IYourFixtureAType
-    testFixtureB: IYourFixtureBType
-    testDependencyMock: IYourDependencyType
-    
-    // Computed Test Data
-    computedTestDataA: IComputedDataType
-    computedTestDataB: IComputedDataType
-}
 
 // ==== TESTS ====
 describe('🏥 YourServiceClass - Enterprise Architecture', async() => {
@@ -403,7 +436,7 @@ describe('🏥 YourServiceClass - Enterprise Architecture', async() => {
 
 ---
 
-## 🎯 3. Sub Test File Template (Enterprise Architecture - **BEVORZUGT**)
+## 🎯 4. Sub Test File Template (Enterprise Architecture - **BEVORZUGT**)
 
 **Pfad:** `test/unit/main/services/{ServiceName}/{ServiceName}/moduleA.ts`
 
@@ -413,14 +446,14 @@ describe('🏥 YourServiceClass - Enterprise Architecture', async() => {
 // ==== IMPORTS ====
 import { describe, beforeEach, it, expect, vi, type MockInstance } from 'vitest'
 import { useTestContext } from '@test/utils/TestContextManager.ts'
-import { CONTEXT_KEYS, type ITestContext } from '../YourServiceClass.test.ts'
+import { CONTEXT_KEYS, type ITestContext } from './shared.ts'
 
 export const runModuleATests = (): void => {
     describe('🔧 Module A Functionality', () => {
         let context: ITestContext
 
         beforeEach(() => {
-            // 🎯 **Use project-specific context key from parent test file**
+            // 🎯 **Use project-specific context key from shared file**
             context = useTestContext<ITestContext>(CONTEXT_KEYS.yourServiceName)
         })
 
@@ -524,24 +557,31 @@ export const runModuleATests = (): void => {
    - Copy 1:1 the TestContextManager code above
    - Place in `test/utils/TestContextManager.ts`
 
-2. **Create Parent Test File**
+2. **Create Shared Types File**
+   - Use Shared Types File Template
+   - Place in `test/unit/main/services/{ServiceName}/{ServiceName}/shared.ts`
+   - Define `CONTEXT_KEYS` with actual service name
+   - Define complete `ITestContext` interface with all needed properties
+   - Import all required types, mock factories, and interfaces
+
+3. **Create Parent Test File**
    - Use Parent Test File Template
    - Replace `YourServiceClass` with actual service name
-   - Replace `yourServiceName` in CONTEXT_KEYS with actual service name
+   - **Import CONTEXT_KEYS and ITestContext from shared.ts**
    - **Implement vi.mock() statements** with proper mock factory imports
    - **Import all mock factories** needed for the service
-   - Define complete `ITestContext` interface with all needed properties
    - Setup proper imports, mocks, and fixtures in `beforeEach`
 
-3. **Create Sub Test Files**
+4. **Create Sub Test Files**
    - Use Sub Test File Template for each test module
    - **WICHTIG:** Dateiname **OHNE** "test"-Prefix (z.B. `moduleA.ts`, **NICHT** `moduleA.test.ts`)
-   - Import `CONTEXT_KEYS` and `ITestContext` from parent test file
+   - Import `CONTEXT_KEYS` and `ITestContext` from `./shared.ts`
    - Use `useTestContext<ITestContext>(CONTEXT_KEYS.yourServiceName)` in `beforeEach`
    - Access all test data via `context.property`
 
 ### 🎯 Naming Conventions
 
+- **Shared Types File:** `{ServiceName}/shared.ts`
 - **Parent Test File:** `{ServiceName}.test.ts`
 - **Sub Test Files:** `{ServiceName}/{moduleName}.ts` ⚠️ **OHNE "test"-Prefix!**
 - **Context Key:** Use PascalCase service name (e.g., `DampsoftPatientService`)
@@ -551,15 +591,17 @@ export const runModuleATests = (): void => {
 ### ✅ Quality Checklist
 
 - [ ] TestContextManager is identical to reference implementation
+- [ ] Shared types file contains CONTEXT_KEYS and complete ITestContext interface
+- [ ] Parent test file imports CONTEXT_KEYS and ITestContext from shared.ts
 - [ ] Parent test file includes all vi.mock() statements with mock factories
 - [ ] Parent test file imports all necessary mock factories
-- [ ] Parent test file defines complete `ITestContext` interface
-- [ ] All sub test files import `CONTEXT_KEYS` from parent
+- [ ] All sub test files import `CONTEXT_KEYS` and `ITestContext` from `./shared.ts`
 - [ ] All sub test files use `useTestContext<ITestContext>(CONTEXT_KEYS.serviceName)`
 - [ ] Sub test files have **NO** "test"-Prefix in filename
 - [ ] No function parameters passed between test files
 - [ ] Proper TypeScript typing throughout
 - [ ] Consistent error handling with descriptive messages
+- [ ] No circular dependencies between files
 
 ---
 
@@ -644,7 +686,4 @@ export const runModuleATests = (): void => {
 ✅ **Mock Management** - Centralized mock factory handling  
 ✅ **Dynamic Setup** - `beforeEach` context creation support  
 ✅ **Parallel Safe** - No shared state issues  
-
-### ⭐ Fazit
-
-**IMMER** die Enterprise Architecture mit TestContextManager verwenden, außer in sehr simplen Fällen wo garantiert keine `beforeEach`-Logik benötigt wird. Die Alternative ist nur als Notlösung gedacht.
+✅ **No Circular Dependencies** - Clean import structure with shared.ts

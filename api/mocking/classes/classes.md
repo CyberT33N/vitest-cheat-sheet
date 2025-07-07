@@ -8,16 +8,16 @@
 
 
 
-### Private
+### Public
 
 <details><summary>Click to expand..</summary>
 
-Option1 - `ClassName.prototype` :
+Option1 - `get` :
 
 ```typescript
 beforeEach(async() => {
-    vi.spyOn(context.service, '_rechnungDBPath', 'get')
-        .mockReturnValue(patKuerzDbPath)
+    vi.spyOn(context.service, 'patKuerzDBPath', 'get')
+                    .mockReturnValue(patKuerzDbPath)
 })
 ```
 

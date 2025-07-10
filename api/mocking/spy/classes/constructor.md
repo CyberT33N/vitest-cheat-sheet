@@ -14,6 +14,7 @@
 ## 📚 **Das Problem: Warum einfacher Spy auf Klassenkonstruktoren nicht funktioniert**
 
 <example type="invalid">
+    
 ```typescript
 import * as moduleAlias from 'path/to/MyClass.ts'
 
@@ -24,6 +25,7 @@ const spyOnClass = vi.spyOn(moduleAlias, 'MyClass')
 // Grund: vi.spyOn() ersetzt den Constructor durch eine normale Mock-Funktion
 //        ohne 'new'-Semantik
 ```
+
 </example>
 
 **Warum es nicht funktioniert:**

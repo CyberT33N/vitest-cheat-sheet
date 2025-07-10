@@ -36,6 +36,7 @@ const spyOnClass = vi.spyOn(moduleAlias, 'MyClass')
 ## ✅ **Die Lösung: vi.mock() mit mockImplementation Pattern**
 
 <example>
+    
 ```typescript
 // ==== IMPORTS ====
 import { MyClass, type IMyClass } from 'path/to/MyClass.ts'
@@ -149,6 +150,7 @@ describe('Positive Tests ✅', () => {
     })
 })
 ```
+
 </example>
 
 ## ⚠️ **Häufige Fallstricke**

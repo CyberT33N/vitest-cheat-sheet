@@ -84,8 +84,8 @@ describe('Private #method transform – existence & callability', () => {
     const service = new DampsoftAppointmentService(/* deps */)
     const key = `${TEST_PRIVATES_PREFIX}readAppointments` as const satisfies TransformedKey
 
-    const spy = vi.spyOn(service as Record<typeof key, unknown>, key as never).mockResolvedValue([])
-    const result = await (service as Record<typeof key, () => Promise<unknown[]>>)[key]()
+    const spy = vi.spyOn(service, key).mockResolvedValue([])
+    const result = await service[key]()
 
     expect(spy).toHaveBeenCalled()
     expect(Array.isArray(result)).toBe(true)

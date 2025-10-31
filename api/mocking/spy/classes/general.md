@@ -9,9 +9,6 @@ This page now serves as an overview. Detailed guides have moved into `methods/`:
 Related:
 - [Constructor](./constructor.md)
 
-<<<<<<< HEAD
----
-=======
 
 
 
@@ -22,7 +19,6 @@ Related:
 
 
 ## Method
->>>>>>> 767bc1bad5be9308de854bc9087dcfce938696cc
 
 See also: [Methods overview](./methods/index.md)
 
